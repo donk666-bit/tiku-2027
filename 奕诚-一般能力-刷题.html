@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>奕诚-一般能力</title>
+<title>奕诚-一般能力-刷题</title>
 <style>
   :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -119,9 +119,25 @@ function renderHome(){
 
 function begin(list, mode, key){
   if(!list.length){ toast('这里还没有题目'); return; }
-  sess = {list, idx:0, mode, key};
+  sess = {list, idx:0, mode, key, done:{}};
   backBtn.style.display=''; starBtn.style.display='';
   showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
 }
 
 function startChapter(i){
@@ -164,6 +180,7 @@ function grade(q, answer){
     rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
   }
   delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
   store.save(S);
   showQ();
 }
@@ -173,7 +190,7 @@ function showQ(){
   if(!q){ renderHome(); return; }
   if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
   const ans = S.ans[q.id];
-  const answered = !!ans;
+  const answered = isAnswered();
   const multi = isMulti(q);
   const sel = draft[q.id] || [];
   const star = !!S.collect[q.id];
@@ -195,7 +212,8 @@ function showQ(){
   }).join('');
 
   const hint = multi && !answered
-    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>` : '';
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
 
   app.innerHTML = `
     <div class="card">
@@ -208,6 +226,7 @@ function showQ(){
         ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
       </div>
       ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
       <div class="nav">
         <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
         <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
@@ -218,7 +237,7 @@ function showQ(){
 
 function pick(L){
   const q = sess.list[sess.idx];
-  if(!q || S.ans[q.id]) return;
+  if(!q || isAnswered()) return;
   if(isMulti(q)){
     const cur = (draft[q.id] || []).slice();
     const i = cur.indexOf(L);
@@ -232,7 +251,7 @@ function pick(L){
 
 function submitMulti(){
   const q = sess.list[sess.idx];
-  if(!q || S.ans[q.id]) return;
+  if(!q || isAnswered()) return;
   const sel = (draft[q.id] || []).slice().sort().join('');
   if(!sel){ toast('先选至少一个选项'); return; }
   grade(q, sel);
