@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>珞研刷题</title>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e9ecf1;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{border:0;background:#eef2f8;color:#2b3648;border-radius:10px;padding:8px 12px;font-size:14px}
+  .btn.primary{background:var(--pri);color:#fff}
+  main{padding:12px;max-width:820px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .stats{display:flex;gap:8px;margin-bottom:12px}
+  .stat{flex:1;background:#fff;border-radius:12px;padding:10px 12px;text-align:center}
+  .stat b{display:block;font-size:20px}
+  .stat span{color:var(--sub);font-size:12px}
+  .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .modes button{padding:12px 6px;border-radius:12px;border:0;background:#fff;font-size:14px;color:#2b3648}
+  .modes button.warn{color:var(--bad)}
+  .ch{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+  .ch:last-child{border-bottom:0}
+  .ch .t{flex:1;min-width:0}
+  .ch .t b{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch .t span{color:var(--sub);font-size:12px}
+  .bar{height:4px;background:#eef1f5;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri)}
+  .qhead{display:flex;justify-content:space-between;color:var(--sub);font-size:13px;margin-bottom:8px}
+  .tag{font-style:normal;display:inline-block;border-radius:6px;padding:1px 7px;margin-right:8px;font-size:12px;color:#fff;background:#8a94a6;vertical-align:1px}
+  .tag.t1{background:#1a6dff}.tag.t2{background:#f08c00}.tag.t3{background:#0a9f5b}
+  .hint{margin-top:12px;font-size:13px;color:#8a6d3b;background:#fff8e6;border-radius:10px;padding:8px 12px}
+  .btn.wide{display:block;width:100%;margin-top:14px;padding:13px;font-size:16px}
+  .title{font-size:16px;line-height:1.8;word-break:break-word}
+  .title img,.opt img,.ana img{max-width:100%!important;height:auto!important;vertical-align:middle}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f7f9fc;border:1px solid #e9edf4;border-radius:12px;padding:12px;margin-top:10px;font-size:15px;color:var(--tx);line-height:1.7}
+  .opt .lab{flex:0 0 22px;height:22px;border-radius:50%;background:#dfe5ee;color:#5b6577;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .opt .cnt{flex:1;min-width:0;word-break:break-word}
+  .opt.sel{border-color:var(--pri)}
+  .opt.right{background:#eaf8f1;border-color:#9fdcbd}
+  .opt.right .lab{background:var(--ok);color:#fff}
+  .opt.wrong{background:#fdeeec;border-color:#f3b8b1}
+  .opt.wrong .lab{background:var(--bad);color:#fff}
+  .ana{margin-top:12px;background:#f2f7ff;border-radius:12px;padding:12px;font-size:14px;color:#33405a;display:none}
+  .ana b{color:var(--ok)}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1;padding:12px}
+  .star{background:none;border:0;font-size:20px;color:#c9ced8;padding:0 4px}
+  .star.on{color:#ffb020}
+  .empty{color:var(--sub);text-align:center;padding:40px 0}
+  .pill{display:inline-block;background:#eef2f8;color:#5b6577;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(29,33,41,.9);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <button class="btn" id="back" style="display:none">‹ 返回</button>
+  <h1 id="hTitle">珞研刷题</h1>
+  <button class="star" id="star" style="display:none">★</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"id": "mock-48855082", "name": "奕诚27单科卷-国网其他工学-电工技术", "chapters": [{"k": "电工技术", "n": "电工技术（40 题）", "qs": [{"id": "9485", "t": "1", "q": "一台单相容量为20MVA的115kv/10kv降压变压器高压侧一次额定电流为（ ）。", "a": ["<p>100.4A<\/p>", "<p>173.9A<\/p>", "<p>1.004A<\/p>", "<p>1.719A<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/pjXJhG9mpIwGzyT8rXSg2zYwnPNiVHbDzh46sTHF.png\"><\/p>", "l3": "电工技术", "l4": "第7章-考纲删除"}, {"id": "9479", "t": "1", "q": "变压器中绝缘油的作用是（ ）。", "a": ["<p>灭弧和散热<\/p>", "<p>限流和灭弧<\/p>", "<p>绝缘和散热<\/p>", "<p>绝缘和灭弧<\/p>", "", ""], "r": "C", "e": "【定位】考察第7章，第2节，知识点2，变压器的基本结构。\n【解析】变压器中绝缘油用于绝缘和散热，断路器中绝缘油还有灭弧作用。因此，本题答案为C选项。", "l3": "电工技术", "l4": "第7章-考纲删除"}, {"id": "9691", "t": "1", "q": "以下属于电流驱动型器件特征的是（ ）。", "a": ["<p>开关速度快<\/p>", "<p>输入阻抗高<\/p>", "<p>导通损耗小<\/p>", "<p>驱动功率小<\/p>", "", ""], "r": "C", "e": "【考点定位】第9章，第2节，知识点1：PN结与电力二极管的工作原理\n【解析】电流驱动型器件具有电导调制效应、通态电压降低、导通损耗小、载流能力大、可承受电压高、工作频率较低、所需驱动功率大、驱动电路比较复杂等特征。电压驱动型器件具有输入阻抗高、开关速度快、驱动功率小、驱动电路简单、工作频率高等特征。", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "9489", "t": "1", "q": "将50Hz、220/127V的变压器，接到100Hz，220V的电源上，铁心中的磁通将如何变化（ ）。", "a": ["<p>减少<\/p>", "<p>增加<\/p>", "<p>不变<\/p>", "<p>不能确定<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/1yvzCxyLT1FMrEoHt8MK4jAaao8uaRxIKWc2UplE.png\"><\/p>", "l3": "电工技术", "l4": "第7章-考纲删除"}, {"id": "9468", "t": "3", "q": "滤波器的截止频率是指通带和阻带的界限频率。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第6章，6.6节，知识点1：滤波电路的定义与分类。\n【解析】1.考点：滤波器的特点。\n 2.滤波器的截止频率是指通带和阻带的界限频率。", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "5628", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/OmmSokgV8ryjo4GrTKrIfrbESi2UJwAcRC4v9cyV.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "【定位】第1章，1.2节，知识点2：独立电源\n【解析】理想电压源的性质：\n(1) 理想电压源的输出电压与外电路无关\n(2) 输出电流与外电路有关，由电压源和负载的大小共同决定。\n(3) 禁止短路，可以开路。\n如理想电压源是直流电压源时，其伏安特性为平行于电流轴的一条直线", "l3": "电工技术", "l4": "第1章"}, {"id": "9418", "t": "1", "q": "理想运放的输出电阻为（ ）。", "a": ["<p>0Ω<\/p>", "<p>10Ω<\/p>", "<p>100Ω<\/p>", "<p>1KΩ<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/F2a9SgRrS5ZnMAO1MNghJYEhLBvhWhvO66EPjloW.png\"><\/p>", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "7833", "t": "3", "q": "当一个线性含源二端网络，若网络中的电源置零后等效电阻为零，则可以将这个二端网络等效为一个理想电压源。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第2章，2.4节，知识点2；戴维宁定理和诺顿定理；\n【解析】理想电压源置零后可当作是短路，即电阻为零。", "l3": "电工技术", "l4": "第2章"}, {"id": "9676", "t": "1", "q": "将一个晶闸管和一个二极管反并联集成在同一硅片上的器件为（ ）。", "a": ["<p>快速二极管<\/p>", "<p>双向晶闸管<\/p>", "<p>逆导晶闸管<\/p>", "<p>光控晶闸管<\/p>", "", ""], "r": "C", "e": "【考点定位】考察第9章，第3节，知识点4：晶闸管的派生器件\n【解析】逆导晶闸管（Reverse Conducting Thyristor, RCT）是一种将晶闸管和二极管反并联集成在同一硅片上的器件。这种结构允许二极管为反向电流提供通路，从而在反向电压下导通，简化了电路设计并提高了效率和可靠性。B.双向晶闸管‌：由一对晶闸管反并联集成，用于双向交流控制，而非晶闸管与二极管的组合。A.快速二极管‌：仅指开关速度快的二极管，不涉及晶闸管集成。‌D.光控晶闸管‌：通过光信号触发导通的晶闸管，无反并联二极管结构。", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "5573", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/us65FpZnNfuoqhVBIte4TqOP0RDao3UUQ9xQj9Ob.png\"><\/p>", "a": ["<p>-18V<\/p>", "<p>18V<\/p>", "<p>-6V<\/p>", "<p>6V<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/KAgWLCirpCCBgQuHCwg6i7Udj6aRMUwJkOiHPQcH.png\"><\/p>", "l3": "电工技术", "l4": "第1章"}, {"id": "5613", "t": "3", "q": "电路模型可分为集总参数电路模型和分布参数电路模型两种。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第1章，1.1节，知识点1：电路与电路模型\n【解析】按照元件参数的空间处理：若元件尺寸远小于工作时电磁波的波长为集总参数元件，若元件尺寸与工作时电磁波的波长相比不能忽略时，称为分布参数元件。含有分布参数元件的电路称为分布参数电路。\n此题考察的是电路模型的分类，电路按照空间关系来分可以分为集总参数电路或分布参数电路。陈述正确，正确选项为A。", "l3": "电工技术", "l4": "第1章"}, {"id": "9719", "t": "2", "q": "下列电力电子器件中，属于电流驱动型的是（ ）。", "a": ["<p>GTO<\/p>", "<p>GTR<\/p>", "<p>IGBT<\/p>", "<p>IGCT<\/p>", "", ""], "r": "AB", "e": "【考点定位】考察第9章，第1节，知识点3：电力电子器件的分类", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "9645", "t": "3", "q": "异步电动机当电源电压一定，负载转矩减小，转速将增加。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p>【定位】第8章，第3节，知识点4：异步电动机的工作特性<\/p>\n<p>异步电动机在额定情况下运行，输出功率增大，转速n减小，转差率增大，定子电流I<sub>1<\/sub>增大，输出转矩T<sub>2<\/sub>增大，功率因数先增后减，效率先增后减。异步电动机在额定情况下运行，输出功率增大，转速n减小，转差率增大，定子电流I<sub>1<\/sub>增大，输出转矩T<sub>2<\/sub>增大，功率因数先增后减，效率先增后减。<\/p>\n<p>【解析】本题考察异步电动机的工作特性。异步电动机在额定情况下运行，负载转矩减小，输出功率减小，转速n增大，转差率减小。因此，本题答案为A选项。<\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9647", "t": "3", "q": "异步电动机负载转矩不变，若电源电压降低，稳定运行时，其电磁转矩将变小。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/e715fIm7HMReX90wzuovBi5VoGSocqUYdZW7SKAv.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9528", "t": "2", "q": "下列属于变压器额定参数的是（ ）。", "a": ["<p>额定电压<\/p>", "<p>额定电流<\/p>", "<p>额定变比<\/p>", "<p>R、X或G、B<\/p>", "", ""], "r": "AB", "e": "【定位】考察第7章，第2节，知识点4，变压器的额定值，对变压器额定值的理解。\n【解析】变压器额定参数包含额定电压，额定电流，额定容量。因此本题答案为AB。", "l3": "电工技术", "l4": "第7章-考纲删除"}, {"id": "7963", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/htrU7Ng3oAwiRR4qs5Xov6DRWdVRgq0Qwhgfctym.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260717/p0DrzonWC0uAJFk6f1d1xEveHbV4XoIZMjOdfP1j.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/rgFe85KwUN1PGoo5UZPoD0slodQ9qqjo9u92fy9p.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/ofvZuHJxOL8Z9PQ30C7BzMu3Om2OssxqBv337Nip.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/3O9pTHEUdHeLDYPkNRWxiJyEbNhjXD2kha1TLh0d.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/paCGyApk0PM0pVW8pWigtZOFJPO34vDeHnM2CxCe.png\"><\/p>", "l3": "电工技术", "l4": "第3章"}, {"id": "8655", "t": "3", "q": "三相电动机的稳定性高于单相电动机。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/DA6lj6osGIinvlt0qoARG7njMF2idItQ9BhGczdh.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "8553", "t": "1", "q": "三相对称电压是指三个大小相等，频率相同，相位相差（ ）的三个正弦电压。", "a": ["<p>120度<\/p>", "<p>90度<\/p>", "<p>60度<\/p>", "<p>180度<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/83RYooskbRVdqaixuUlSHKp7l4Nr4RXKLx3YmyTk.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "9410", "t": "1", "q": "双端输出电路对称的差动放大电路，对共模输入信号的电压放大倍数近似等（ ）。", "a": ["<p>零<\/p>", "<p>无穷大<\/p>", "<p>一个管子的电压放大倍数<\/p>", "<p>1<\/p>", "", ""], "r": "A", "e": "【定位】第6章，6.2节，知识点3：主要技术指标。\n【解析】1.考点：差动放大电路原理。\n 2.由差动放大电路工作原理可知，共模输入信号的电压放大倍数近似等于零。", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "9709", "t": "2", "q": "下列关于普通晶闸管结构的描述，正确的有（ ）。", "a": ["<p>四层半导体<\/p>", "<p>三个PN结<\/p>", "<p>三个电极<\/p>", "<p>二个等效晶体管<\/p>", "", ""], "r": "ABCD", "e": "【考点定位】第9章，第3节，知识点1：晶闸管的结构与工作原理\n【解析】考察晶闸管的半导体结构；它是四层半导体，形成三个PN结，有三个端子，可等效为两个三极管（一个NPN和一个PNP）组合的器件", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "8566", "t": "1", "q": "不对称三相电路是指（ ）。", "a": ["<p>电源不对称<\/p>", "<p>负载不对称<\/p>", "<p>线路不对称<\/p>", "<p>以上三者任意不对称<\/p>", "", ""], "r": "D", "e": "【定位】第4章，4.1节知识点4：三相电路\n【解析】三相电路由三相电源、三相负载和三相线路组成，只有当三者均对称时，三相电路才为对称三相电路，任何不对称都为不对称三相电路。故选项D正确。", "l3": "电工技术", "l4": "第4章"}, {"id": "9623", "t": "2", "q": "笼型异步电动机的起动方式包括（ ）。", "a": ["<p>定子回路串电抗<\/p>", "<p>定子回路串电阻<\/p>", "<p>自耦变压器减压<\/p>", "<p>星-三角形减压<\/p>", "", ""], "r": "ABCD", "e": "【定位】第8章，第4节，知识点3：异步电动机的起动\n鼠笼式异步电动机的起动方法：直接起动、降压起动、软启动。降压起动有定子串电阻或电抗、Y-Δ起动、自耦变压器降压起起动、延边三角形起动。绕线式异步电动机主要是转子串电阻或频敏变阻器起动。\n【解析】本题考察异步电动机的起动。鼠笼式异步电动机可采用直接起动、降压起动（定子串电阻或电抗）、自耦变压器起动、星-三角起动。本题答案为ABCD。", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9680", "t": "1", "q": "关于Power MOSFET说法错误的是（ ）。", "a": ["<p>驱动电路复杂，需要的驱动功率大<\/p>", "<p>开关速度快<\/p>", "<p>工作频率高<\/p>", "<p>电流容量小，耐压低，多用于功率不超过10kW的电力电子装置<\/p>", "", ""], "r": "A", "e": "【考点定位】第9章，第4节，知识点3：电力场效应晶体管\n【解析】Power MOSFET是电压驱动型器件，输入阻抗高，开关速度快，驱动功率小，驱动电路简单，工作频率高。", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "9641", "t": "3", "q": "不考虑定子电阻，三相异步电动机最大电磁转矩与电源频率的平方成反比。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/oHMTeYn7dpN4dgxJYiVTJRbMaWX5r3GX0bxQYU71.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "7810", "t": "3", "q": "并联电路中，各个电阻的电流与电导成正比。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/LclMszxfvQWaJAp43yq91Buahe9fxLRbFMUfR2MC.png\"><\/p>", "l3": "电工技术", "l4": "第2章"}, {"id": "8028", "t": "2", "q": "关于理想变压器，下列说法正确的是（ ）。", "a": ["<p>理想变压器是一种全耦合的变压器<\/p>", "<p>理想变压器跟电感一样，是有记忆的元件<\/p>", "<p>理想变压器是一种不储能、不耗能的元件<\/p>", "<p>理想变压器是一种非动态、四端元件<\/p>", "", ""], "r": "ACD", "e": "【定位】第3章，3.9节，知识点2：理想变压器\n【解析】本题是对理想变压器的性质的考核。\n根据理想变压器的定义可知：理想变压器是一次绕组与二次绕组具有无穷大自感的、完全耦合的、无损变压器，选项A正确。理想变压器与电容电感不同，电容和电感是记忆元件，但理想变压器没有记忆特性，是无记忆元件，选项B错。理想变压器的“理想”二字反映了无电能损耗，且变压器并不是储能元件，因此选项C正确。与电感不同，理想变压器不是动态元件，且理想变压器是四端元件或者说二端口元件，因此选项D正确。本题选ACD。", "l3": "电工技术", "l4": "第3章"}, {"id": "9509", "t": "1", "q": "三相心式变压器各相磁阻（ ）。", "a": ["<p>相等<\/p>", "<p>不相等，中间磁阻小<\/p>", "<p>不相等，中间磁阻大<\/p>", "<p>不相等，两边磁阻小<\/p>", "", ""], "r": "B", "e": "【定位】考察第7章，第6节，知识点1，三相变压器的磁路系统\n【解析】三相心式变压器各相磁阻不相等，中间磁阻最小，原因是中间相磁路长度短。", "l3": "电工技术", "l4": "第7章-考纲删除"}, {"id": "8012", "t": "2", "q": "下列阻抗角属于感性阻抗角的是（ ）。", "a": ["<p>45°<\/p>", "<p>-45°<\/p>", "<p>60°<\/p>", "<p>-60°<\/p>", "", ""], "r": "AC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/FkA0DWFhKJEZ2IxxvfKM0cdtBqCPPxtyMK4Sai7U.png\"><\/p>", "l3": "电工技术", "l4": "第3章"}, {"id": "5569", "t": "1", "q": "为了使电炉上消耗的功率减小到原来的一半，应该使（ ）。", "a": ["<p>电压加倍<\/p>", "<p>电压减半<\/p>", "<p>电阻加倍<\/p>", "<p>电阻减半<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/lDWL19VOSB6qvDPtOcVXRFr2QH0KlwwivLqtn44e.png\"><\/p>", "l3": "电工技术", "l4": "第1章"}, {"id": "9701", "t": "2", "q": "以下不属于全控型器件的是（ ）。", "a": ["<p>IGBT<\/p>", "<p>电力二极管<\/p>", "<p>Power MOSFET<\/p>", "<p>SCR<\/p>", "", ""], "r": "BD", "e": "【考点定位】第9章，第1节，知识点3：电力电子器件的分类\n【解析】电力二极管是不可控器件，SCR是半控器件，所以选择BD", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "8652", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/ss0S1MtnnWiAB5d2RlCqChEiZqn1wRViVrqeOw2B.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/BXO1WPdip1xTpHnvvQsJQMKhTqydrqLM4KDgPH74.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "8623", "t": "2", "q": "变电所旳接地装置有（ ）。", "a": ["<p>工作接地<\/p>", "<p>保护接地<\/p>", "<p>防雷接地<\/p>", "<p>防火接地<\/p>", "", ""], "r": "ABC", "e": "【定位】第4章，4.4节，知识点4：触电事故及急救\n【解析】对规定使用接地的用电器具的金属外壳要做好接地保护，不要忘记给三眼插座、插座盒安装接地线；不要随意将三眼插头改为两眼插头。\n通常在高大建筑物或在雷区的每个建筑物的顶部，安装避雷针来预防雷击。对于使用室外电视机或收录机天线的用户，应装避雷器或防雷用转换开关。在正常天气时将天线接人室内，在雷雨前将天线转接到接地体上，以防由天线引人雷击。", "l3": "电工技术", "l4": "第4章"}, {"id": "9734", "t": "3", "q": "阴极是晶闸管主电路与控制电路的公共端。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【考点定位】第9章，第３节，知识点1：晶闸管的结构与工作原理\n【解析】晶闸管的结构：（1）引出阳极A、阴极K和门极（控制端）G三个联接端，阴极为晶闸管主电路与控制电路的公共端；（2）内部是PNPN四层半导体结构（相当于有三个PN结）。", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "9602", "t": "1", "q": "大容量的异步电动机（ ）。", "a": ["<p>可以无条件的采取直接起动<\/p>", "<p>完全不能采取直接起动<\/p>", "<p>电动机的额定容量不超过电源变压器额定容量的20％～30％的条件下，可直接起动<\/p>", "<p>电动机的额定容量超过电源变压器额定容量的20％～30％的条件下，可直接起动<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/ViaOzGPFpHdZbX5GMdf0OhO3h49o39K5VxLl323E.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9648", "t": "3", "q": "感应电动机的负载转矩在任何时候都绝不可能大于额定转矩。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "【定位】第8章，第4节，知识点2：电力拖动系统稳定运行条件\n额定稳定运行时，负载转矩等于额定转矩，但如果发生过载，负载转矩大于额定转矩。\n【解析】本题考察异步电动机的运行。额定稳定运行时，负载转矩等于额定转矩，但如果发生过载，负载转矩大于额定转矩。因此，本题答案为B选项。", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9686", "t": "1", "q": "关于晶闸管正常工作的静态特性，下列说法不正确的是（ ）。", "a": ["<p>晶闸管承受反向电压时，若门极触发电流达到某个值，晶闸管也会导通<\/p>", "<p>晶闸管承受正向电压时，仅在门极有触发电流的情况下晶闸管才能导通<\/p>", "<p>晶闸管一旦导通，门极就失去控制作用，不论门极触发电流是否还存在，晶闸管都保持导通<\/p>", "<p>若要使已导通的晶闸管关断，只能利用外加电压和外电路的作用使流过晶闸管的电流降到接近于零的某一数值以下<\/p>", "", ""], "r": "A", "e": "【考点定位】第9章，第3节，知识点1：晶闸管的结构与工作原理\n【解析】晶闸管承受反向电压时，不论门极是否有触发电流，晶闸管都不会导通。晶闸管承受正向电压时，仅在门极有触发电流的情况下晶闸管才能导通。晶闸管一旦导通，门极就失去控制作用，不论门极触发电流是否还存在，晶闸管都保持导通。若要使已导通的晶闸管关断，只能利用外加电压和外电路的作用使流过晶闸管的电流降到接近于零的某一数值以下。", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "8021", "t": "2", "q": "在电路发生并联谐振时，电源端电压和电流的关系错误的是（ ）。", "a": ["<p>电流相位超前电压<\/p>", "<p>电压相位超前电流<\/p>", "<p>同相位<\/p>", "<p>反相位<\/p>", "", ""], "r": "ABD", "e": "【定位】第3章，3.7节，知识点2：并联谐振电路\n【解析】此题考查电路发生谐振时电压和电流的相位关系，根据知识点回顾，并联谐振的定义：并联电路中端口电压与电流同相位的现象，此时复导纳虚部为0。电源端口处的电压和电流都是同相位的，因此答案选ABD", "l3": "电工技术", "l4": "第3章"}, {"id": "8595", "t": "2", "q": "三相电源与单相电源的区别是（ ）。", "a": ["<p>发电机发出的电源一般是三相的<\/p>", "<p>三相电源的每一相与其中性点都可以构成六个单相回路为用户提供电力能源<\/p>", "<p>零线与中性点联接，和任意一条火线连接用以提供单相电源的电流<\/p>", "<p>三相交流电源一般为正弦变化<\/p>", "", ""], "r": "ACD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/yYPP107JDlNXEBVc8TFdsKHOYaK8AtHiyfC19D1V.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "5593", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/AgLURyxOosgYSo28NnFnljCXPzXUFDWh1x0k2DIv.png\"><\/p>", "a": ["<p>1.5A<\/p>", "<p>5.5A<\/p>", "<p>3A<\/p>", "<p>8A<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/rrzT3YPF4jZ7RQWybXNQYhN8CenRViKJzhYvhGPL.png\"><\/p>", "l3": "电工技术", "l4": "第1章"}, {"id": "7786", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/Az52FocxCCUlI4l0odiiQCUOtoEgfCZUFtdsRRpp.png\"><\/p>", "a": ["<p>5Ω<\/p>", "<p>10Ω<\/p>", "<p>15Ω<\/p>", "<p>20Ω<\/p>", "", ""], "r": "ABD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/wbsawY6cecVreL0YDPnMvEw4D8Y2iyLZH9ijuBJ8.png\"><\/p>", "l3": "电工技术", "l4": "第2章"}]}]};
+
+const KEY = 'ly:' + DATA.id;
+const store = {
+  load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {} } catch(e){ return {} } },
+  save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)) } catch(e){} }
+};
+let S = store.load();
+S.wrong = S.wrong || {}; S.collect = S.collect || {}; S.pos = S.pos || {};
+S.ans = S.ans || {}; S.stats = S.stats || {r:0,w:0};
+store.save(S);
+
+const $ = id => document.getElementById(id);
+const app = $('app'), hTitle = $('hTitle'), backBtn = $('back'), starBtn = $('star');
+let sess = null;   // {list, idx, mode, key}
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1400); }
+function allQ(){ return DATA.chapters.flatMap(c=>c.qs); }
+function chapterWrongCount(c){ return c.qs.filter(q=>S.wrong[q.id]).length; }
+function chapterDone(c){ const p=S.pos[c.k]; return p==null?0:Math.min(p,c.qs.length); }
+function esc(s){ return (s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function renderHome(){
+  sess = null; backBtn.style.display='none'; starBtn.style.display='none';
+  hTitle.textContent = DATA.name;
+  const total = allQ().length, wrongN = Object.keys(S.wrong).length, colN = Object.keys(S.collect).length;
+  app.innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${total}</b><span>总题量</span></div>
+      <div class="stat"><b style="color:var(--ok)">${S.stats.r}</b><span>答对</span></div>
+      <div class="stat"><b style="color:var(--bad)">${S.stats.w}</b><span>答错</span></div>
+      <div class="stat"><b style="color:#ffb020">${wrongN}</b><span>错题</span></div>
+    </div>
+    <div class="modes">
+      <button onclick="startAll()">顺序练习</button>
+      <button onclick="startRandom()">随机练习</button>
+      <button class="warn" onclick="startWrong()">错题本<em class="pill">${wrongN}</em></button>
+      <button onclick="startCollect()">收藏<em class="pill">${colN}</em></button>
+    </div>
+    <div class="card">
+      ${DATA.chapters.map((c,i)=>{
+        const done = chapterDone(c), pct = c.qs.length? Math.round(done/c.qs.length*100):0;
+        return `<div class="ch" onclick="startChapter(${i})">
+          <div class="t"><b>${esc(c.n)}</b><span>${c.qs.length} 题 · 错题 ${chapterWrongCount(c)} · 已做 ${done}</span>
+          <div class="bar"><i style="width:${pct}%"></i></div></div>
+          <div style="color:var(--sub)">›</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function begin(list, mode, key){
+  if(!list.length){ toast('这里还没有题目'); return; }
+  sess = {list, idx:0, mode, key, done:{}};
+  backBtn.style.display=''; starBtn.style.display='';
+  showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
+}
+
+function startChapter(i){
+  const c = DATA.chapters[i];
+  const pos = S.pos[c.k] || 0;
+  begin(c.qs.slice(), 'chapter', c.k);
+  sess.idx = Math.min(pos, c.qs.length-1);
+  showQ();
+}
+function startAll(){ begin(allQ(), 'all', 'ALL'); }
+function startRandom(){ begin(allQ().sort(()=>Math.random()-0.5), 'random', 'RND'); }
+function startWrong(){
+  const list = allQ().filter(q=>S.wrong[q.id]);
+  list.sort((a,b)=>(S.wrong[b.id].n||0)-(S.wrong[a.id].n||0));
+  begin(list, 'wrong', 'WRONG');
+}
+function startCollect(){ begin(allQ().filter(q=>S.collect[q.id]), 'collect', 'COL'); }
+
+const TYPE_NAME = {1:'单选', 2:'多选', 3:'判断'};
+function typeOf(q){ return TYPE_NAME[q.t] || '单选'; }
+function isMulti(q){ return q.t === 2; }
+let draft = {};          // 多选题暂存：qid -> [选项字母]
+
+function sameSet(a, b){
+  const x = (a||'').split('').filter(Boolean).sort().join('');
+  const y = (b||'').split('').filter(Boolean).sort().join('');
+  return !!x && x === y;
+}
+
+function grade(q, answer){
+  const ok = sameSet(answer, q.r);
+  S.ans[q.id] = {a: answer, ok};
+  let rec = S.wrong[q.id];
+  if(ok){
+    S.stats.r++;
+    if(rec){ rec.s = (rec.s||0)+1; if(rec.s >= 2){ delete S.wrong[q.id]; toast('已掌握，移出错题本'); } }
+  } else {
+    S.stats.w++;
+    if(!rec) rec = S.wrong[q.id] = {n:0,s:0};
+    rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
+  }
+  delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
+  store.save(S);
+  showQ();
+}
+
+function showQ(){
+  const q = sess.list[sess.idx];
+  if(!q){ renderHome(); return; }
+  if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
+  const ans = S.ans[q.id];
+  const answered = isAnswered();
+  const multi = isMulti(q);
+  const sel = draft[q.id] || [];
+  const star = !!S.collect[q.id];
+  starBtn.classList.toggle('on', star);
+  hTitle.textContent = `${DATA.name} · ${sess.idx+1}/${sess.list.length}`;
+
+  const opts = q.a.map((a, i)=>{
+    const L = 'ABCDEF'[i];
+    if(!a || !a.replace(/<[^>]+>/g,'').trim() && !/img/i.test(a)) return '';
+    let cls = 'opt';
+    if(answered){
+      if((q.r||'').includes(L)) cls += ' right';
+      else if((ans.a||'').includes(L)) cls += ' wrong';
+    } else if(multi && sel.includes(L)) cls += ' sel';
+    return `<button class="${cls}" onclick="pick('${L}')">
+      <span class="lab">${q.ap[i] ? '' : L}</span>
+      <span class="cnt">${a}</span>
+    </button>`;
+  }).join('');
+
+  const hint = multi && !answered
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead"><span><em class="tag t${q.t}">${typeOf(q)}</em>${esc(q.l4 || q.l3)}</span></div>
+      <div class="title">${q.q}</div>
+      ${opts}
+      ${hint}
+      <div class="ana" id="ana" style="${answered?'display:block':''}">
+        <div><b>正确答案：${q.r || '—'}</b>${answered?`　<span style="color:${ans.ok?'var(--ok)':'var(--bad)'}">我的答案：${ans.a || '—'}</span>`:''}</div>
+        ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
+      </div>
+      ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
+      <div class="nav">
+        <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
+        <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
+      </div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function pick(L){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  if(isMulti(q)){
+    const cur = (draft[q.id] || []).slice();
+    const i = cur.indexOf(L);
+    if(i >= 0) cur.splice(i,1); else cur.push(L);
+    draft[q.id] = cur.sort();
+    showQ();
+    return;
+  }
+  grade(q, L);
+}
+
+function submitMulti(){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  const sel = (draft[q.id] || []).slice().sort().join('');
+  if(!sel){ toast('先选至少一个选项'); return; }
+  grade(q, sel);
+}
+function prevQ(){ if(sess.idx>0){ sess.idx--; showQ(); } }
+function nextQ(){
+  if(sess.idx < sess.list.length-1){ sess.idx++; showQ(); }
+  else { toast('这一组做完了'); renderHome(); }
+}
+function toggleStar(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  if(S.collect[q.id]) delete S.collect[q.id]; else S.collect[q.id] = true;
+  store.save(S); showQ();
+}
+
+backBtn.onclick = renderHome;
+starBtn.onclick = toggleStar;
+
+/* 支持 ?chapter=0 直接进章节 */
+const m = location.search.match(/chapter=(\d+)/);
+if(m) startChapter(+m[1]); else renderHome();
+</script>
+</body>
+</html>

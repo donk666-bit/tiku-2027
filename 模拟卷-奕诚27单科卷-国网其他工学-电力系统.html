@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>珞研刷题</title>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e9ecf1;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{border:0;background:#eef2f8;color:#2b3648;border-radius:10px;padding:8px 12px;font-size:14px}
+  .btn.primary{background:var(--pri);color:#fff}
+  main{padding:12px;max-width:820px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .stats{display:flex;gap:8px;margin-bottom:12px}
+  .stat{flex:1;background:#fff;border-radius:12px;padding:10px 12px;text-align:center}
+  .stat b{display:block;font-size:20px}
+  .stat span{color:var(--sub);font-size:12px}
+  .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .modes button{padding:12px 6px;border-radius:12px;border:0;background:#fff;font-size:14px;color:#2b3648}
+  .modes button.warn{color:var(--bad)}
+  .ch{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+  .ch:last-child{border-bottom:0}
+  .ch .t{flex:1;min-width:0}
+  .ch .t b{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch .t span{color:var(--sub);font-size:12px}
+  .bar{height:4px;background:#eef1f5;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri)}
+  .qhead{display:flex;justify-content:space-between;color:var(--sub);font-size:13px;margin-bottom:8px}
+  .tag{font-style:normal;display:inline-block;border-radius:6px;padding:1px 7px;margin-right:8px;font-size:12px;color:#fff;background:#8a94a6;vertical-align:1px}
+  .tag.t1{background:#1a6dff}.tag.t2{background:#f08c00}.tag.t3{background:#0a9f5b}
+  .hint{margin-top:12px;font-size:13px;color:#8a6d3b;background:#fff8e6;border-radius:10px;padding:8px 12px}
+  .btn.wide{display:block;width:100%;margin-top:14px;padding:13px;font-size:16px}
+  .title{font-size:16px;line-height:1.8;word-break:break-word}
+  .title img,.opt img,.ana img{max-width:100%!important;height:auto!important;vertical-align:middle}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f7f9fc;border:1px solid #e9edf4;border-radius:12px;padding:12px;margin-top:10px;font-size:15px;color:var(--tx);line-height:1.7}
+  .opt .lab{flex:0 0 22px;height:22px;border-radius:50%;background:#dfe5ee;color:#5b6577;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .opt .cnt{flex:1;min-width:0;word-break:break-word}
+  .opt.sel{border-color:var(--pri)}
+  .opt.right{background:#eaf8f1;border-color:#9fdcbd}
+  .opt.right .lab{background:var(--ok);color:#fff}
+  .opt.wrong{background:#fdeeec;border-color:#f3b8b1}
+  .opt.wrong .lab{background:var(--bad);color:#fff}
+  .ana{margin-top:12px;background:#f2f7ff;border-radius:12px;padding:12px;font-size:14px;color:#33405a;display:none}
+  .ana b{color:var(--ok)}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1;padding:12px}
+  .star{background:none;border:0;font-size:20px;color:#c9ced8;padding:0 4px}
+  .star.on{color:#ffb020}
+  .empty{color:var(--sub);text-align:center;padding:40px 0}
+  .pill{display:inline-block;background:#eef2f8;color:#5b6577;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(29,33,41,.9);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <button class="btn" id="back" style="display:none">‹ 返回</button>
+  <h1 id="hTitle">珞研刷题</h1>
+  <button class="star" id="star" style="display:none">★</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"id": "mock-29139387", "name": "奕诚27单科卷-国网其他工学-电力系统", "chapters": [{"k": "电力系统", "n": "电力系统（40 题）", "qs": [{"id": "34839", "t": "2", "q": "下列属于电化学储能技术的有（ ）。", "a": ["<p>锂离子电池<\/p>", "<p>钠硫电池<\/p>", "<p>全钒液流电池<\/p>", "<p>压缩空气储能<\/p>", "", ""], "r": "ABC", "e": "【定位】第6章，第2节，知识点2：新型储能的分类。\n【解析】电化学储能涵盖锂离子电池、钠离子电池、液流电池（含全钒液流电池）、铅蓄电池、钠硫电池等；压缩空气储能属于机械储能，D排除。", "l3": "电力系统", "l4": "第6章"}, {"id": "33950", "t": "3", "q": "分裂导线改变了导线周围的磁场分布，是线路电抗减小的原因。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "A", "e": "【定位】第2章，第3节，知识点5：分裂导线输电线路\n【解析】架空线路采用分裂导线等值增大导线的计算半径，改变了导线周围的磁场分布，减小了线路电抗。", "l3": "电力系统", "l4": "第2章"}, {"id": "34739", "t": "1", "q": "以下选项中不属于不正常工作状态的是（ ）。", "a": ["系统中出现功率缺额而引起的频率降低", "发电机突然甩负荷引起的发电机频率升高", "中性点不接地系统单相接地引起的非接地相对地电压升高", "电力系统中部分地区电压大大降低使电力用户的正常工作遭到破坏", "", ""], "r": "D", "e": "【定位】第5章，第1节，知识点2：电力系统的特点及运行状态的分类\n【解析】电力系统中部分地区电压大大降低使电力用户的正常工作遭到破坏属于故障状态，ABC均为不正常工作状态，故选D。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "34849", "t": "3", "q": "新型电力系统是以新能源为供给主体，以确保能源电力安全为基本前提、以满足新能源的发展和消纳为首要目标，确保新能源可持续性发展。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第6章，第1节，知识点2：新型电力系统的定义\n【解析】新型电力系统是以新能源为供给主体、以确保能源电力安全为基本前提、以满足经济社会发展电力需求为首要目标的新一代电力系统。不管新型还是传统的电力系统都是以确保电力安全的前提下，以满足经济社会发展电力需求为首要目标。", "l3": "电力系统", "l4": "第6章"}, {"id": "35684", "t": "1", "q": "电力系统不包含（ ）。", "a": ["<p>发电厂<\/p>", "<p>输电网络<\/p>", "<p>配电网络<\/p>", "<p>水轮机、汽轮机<\/p>", "", ""], "r": "D", "e": "【定位】第1章，第1节，知识点1：电力系统组成及各元件的作用\n【解析】水轮机、汽轮机属于动力部分，不属于电力系统。", "l3": "电力系统", "l4": "第1章"}, {"id": "33927", "t": "2", "q": "发电机在运行中受到哪些条件的限制？（ ）", "a": ["定子绕组温升", "励磁绕组温升", "原动机输入功率", "定子端部温升", "", ""], "r": "ABCD", "e": "【定位】第2章，第1节，知识点3：同步发电机的运行限制\n【解析】发电机运行时首先受定子绕组温升限制，绕组电流过大发热超标会损坏绝缘，励磁绕组长时间过载会造成励磁绕组温升过高引发绝缘老化损坏，原动机的最大输入功率决定了发电机能够输出的有功功率上限，无法超过原动机的出力，同时定子端部区域磁场集中、散热条件较差，定子端部温升也是重要的运行约束条件，以上四项均会限制发电机的正常运行出力，因此ABCD四个选项均正确。", "l3": "电力系统", "l4": "第2章"}, {"id": "33848", "t": "1", "q": "输送电能通常采用（ ）三相三线制交流输电方式。", "a": ["三相、直流", "单相、直流", "三相、交流", "单相、交流", "", ""], "r": "C", "e": "【定位】第2章，第3节，知识点1：电力线路的类型与结构\n【解析】在远距离输送电能时通常采用三相交流输电，多选用三相三线制的接线方式，三相交流电相比单相交流电输送相同功率时导线耗材更少、输电效率更高，运行经济性更好，而直流电早期远距离输电技术不成熟，常规高压输电普遍采用三相交流形式，单相交流多用于居民低压用电场景，并不适合大功率远距离电能输送，因此本题选择C。", "l3": "电力系统", "l4": "第2章"}, {"id": "33807", "t": "1", "q": "长度不超过100km的架空输电线路属于（ ）。", "a": ["短线路", "中等长度线路", "长线路", "超长线路", "", ""], "r": "A", "e": "【定位】第2章，第3节，知识点7：输电线路的等值电路\n【解析】短线路通常指长度100km以下的架空线路和电压等级不超过10kV的电缆线路。", "l3": "电力系统", "l4": "第2章"}, {"id": "34450", "t": "1", "q": "变压器中电压降落纵分量△UT主要取决于变压器的（ ）。", "a": ["电阻", "电抗", "电导", "电纳", "", ""], "r": "B", "e": "【定位】第3章，第1节，知识点7：具有普遍意义的结论\n【解析】电抗大于电阻，纵分量主要取决于电抗。", "l3": "电力系统", "l4": "第3章"}, {"id": "35698", "t": "1", "q": "下面不属于配电网特点的是（ ）。", "a": ["输电距离近", "输送容量大", "电压等级低", "供电可靠性低", "", ""], "r": "B", "e": "【定位】第1章，第1节，知识点2：电力网及其分类\n【解析】配电网面向终端用户供电，具备输电距离近、电压等级偏低的特点，线路分支多，故障易影响用户，供电可靠性相对输电网更低。输送容量大是高压输电网的特征，并非配电网特点，因此选B。", "l3": "电力系统", "l4": "第1章"}, {"id": "34555", "t": "1", "q": "电力线路电压降落为（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260727/9HWd5oD9c0xfW7dRcrL7UN6loYBIvcYYIwoZnyuI.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/9WUJ2mFkBbQvaxybhEQPo65dWdbFiznrSl9iEDpa.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/r02sgy7TWsHOtE7n1lE1IZNfI1CWycyMNaJvHV9t.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/0R8QdEe7sIwksTn75kTw3B2zuSuRkTfhlXIP2NEM.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/z7n2PapVWoIHHCr8BOaIuShMCNHdea6KhLnw2CDz.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34676", "t": "3", "q": "油断路器的灭弧能力与电弧电流有关，其燃弧时间随着开断电流减小而减小。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第4章，第5节，知识点2：高压断路器\n【解析】因为油断路器利用电弧本身的能量，将油加热，形成油蒸汽和大量气体所组成的高压气泡实现吹弧。所以油断路器的灭弧能力与电弧电流有关，其燃弧时间随着开断电流减小而增大。所以选B。", "l3": "电力系统", "l4": "第4章"}, {"id": "34712", "t": "1", "q": "能瞬时切除线路区内任意一点故障的主保护是（ ）。", "a": ["相间电流保护", "电流差动保护", "零序电流保护", "接地距离保护", "", ""], "r": "B", "e": "【定位】第5章，第1节，知识点3：电网保护基本原理。\n【解析】纵联保护是同时反应两侧（多侧）电气量的保护，可以在本线路范围内任意一点发生故障时瞬时切除（全线速动），而纵联保护又分为纵联电流差动保护、纵联方向高频保护、纵联距离高频保护和纵联相差高频保护，故选B。阶段式保护是反应单侧电气量的保护，因为不能区分本线路末端短路与相邻下级线路首端短路，因此不能瞬时切除本线路区内的任意一点故障，而阶段式保护又分为相间电流保护、零序电流保护和接地距离保护，故不选ACD。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "34617", "t": "1", "q": "核电的生产过程是（ ）→热能→机械能→电能。", "a": ["化学能", "核裂变能", "核聚变能", "核反应堆", "", ""], "r": "B", "e": "【定位】第4章，第1节，知识点5：核能发电厂\n【解析】核电站是利用铀燃料在核反应堆中发生可控核裂变释放出核裂变能，将核能转化为冷却剂的热能，高温冷却剂加热产生蒸汽推动汽轮机旋转把热能转化为机械能，再由发电机将机械能转化为电能，化学能是火电厂燃料燃烧时释放的能量，目前商用核电站尚未实现可控核聚变发电，核反应堆只是实现核裂变反应的设备并非能量形式，因此本题选B。", "l3": "电力系统", "l4": "第4章"}, {"id": "34500", "t": "2", "q": "下列说法正确有（ ）。", "a": ["<p>任何运行方式下输电线路都要产生感性无功损耗<\/p>", "<p>任何运行方式下变压器都要产生感性无功损耗<\/p>", "<p>一般情况下，电力系统的无功损耗远大于有功损耗<\/p>", "<p>一般情况下，电力系统的有功损耗远大于无功损耗<\/p>", "", ""], "r": "BC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/jWDJ4z1VtjVvrw6VH6o2ivROTpoeuAUsAd5vjCME.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "33845", "t": "1", "q": "下面选项中，不属于电力系统负荷模型的是（ ）。", "a": ["<p>静态负荷模型<\/p>", "<p>动态负荷模型<\/p>", "<p>感应电动机负荷模型<\/p>", "<p>发电机模型<\/p>", "", ""], "r": "D", "e": "【定位】第2章，第4节，知识点5：负荷的数学模型\n【定位】第6章，第3节，知识点1：同步发电机三相短路分析的假设条件\n【解析】发电机模型不是负荷模型，而是电力系统中的电源模型。静态负荷模型、动态负荷模型和感应电动机负荷模型都是常见的负荷模型。", "l3": "电力系统", "l4": "第2章"}, {"id": "34446", "t": "1", "q": "无功功率流过线路阻抗时所产生的功率损耗（ ）。", "a": ["<p>只能是有功<\/p>", "<p>只能是无功<\/p>", "<p>不能是无功<\/p>", "<p>既有有功也有无功<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/pchiUPM57Jh9Fe0kF79djRAwxJPJhQzzlOnszKKT.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34465", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/6fFQTzXCQi06prWAot05Zd2gpbmKodwTyqSR8Jg6.png\"><\/p>", "a": ["<p>高于<\/p>", "<p>低于<\/p>", "<p>等于<\/p>", "<p>以上三种情况都可能出现<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/Zkccq2D11Or0SEcEcmAEWMcNSVRaYaL2LXbzeXPF.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34688", "t": "3", "q": "10kV系统中，单相式电压互感器采用单相接线接于相和地之间时，其一次绕组的额定电压为10kV。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第4章，第6节，知识点3：电磁式和电容分压式电压互感器\n【解析】单相式电压互感器采用单相接线接于相和地之间时，其一次绕组的额定电压为相电压，10kV为线电压。", "l3": "电力系统", "l4": "第4章"}, {"id": "34787", "t": "2", "q": "电力系统不等式约束条件中哪些既要考虑上限又要考虑下限（ ）。", "a": ["用电设备的功率", "母线电压", "线路电流", "系统频率", "", ""], "r": "BD", "e": "【定位】第5章，第1节，知识点2：电力系统的特点及运行状态的分类\n【解析】电力系统不等式约束条件既要考虑上限又要考虑下限为母线电压和系统频率，过低过高都会给电力系统造成不利影响，故选BD。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "33887", "t": "1", "q": "取基准容量为100MVA，35kV线路电抗为40Ω，如果采用近似计算法，其标幺值为（ ）。", "a": ["<p>2<\/p>", "<p>2.9<\/p>", "<p>2.92<\/p>", "<p>3.92<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/1A4wvlsHQf0huyk6NKOhvapVcFIdiSGo1DYw4wf7.png\"><\/p>", "l3": "电力系统", "l4": "第2章"}, {"id": "34661", "t": "2", "q": "保护电器用于过电流或短路电流防护和过电压防御，下列选项中属于保护电器的是（ ）。", "a": ["熔断器", "避雷器", "负荷开关", "分段器", "", ""], "r": "AB", "e": "【定位】第4章，第3节，知识点1：电气一次设备\n【解析】熔断器和避雷器都属于保护电器，CD属于开关电器，故选AB。", "l3": "电力系统", "l4": "第4章"}, {"id": "33930", "t": "2", "q": "线路电能损耗是由于线路导线存在（ ）及（ ）。", "a": ["电阻", "电容", "电晕", "电感", "", ""], "r": "AC", "e": "【定位】第2章，第3节，知识点3：单回架空输电线路的参数及其计算\n【解析】输电线路的电能损耗主要分为两部分，一是电流通过导线电阻产生的电阻有功损耗，属于导线的基本铜耗，二是高压线路电压过高时会发生电晕放电现象，产生电晕损耗消耗有功电能，电感和电容属于储能元件，只进行无功功率的交换，不会产生有功电能损耗，因此线路电能损耗由电阻和电晕引起，本题选择AC。", "l3": "电力系统", "l4": "第2章"}, {"id": "33878", "t": "1", "q": "电力系统供电负荷与厂用电负荷之和为（ ）。", "a": ["系统发电负荷", "系统供电负荷", "系统综合负荷", "以上均不正确", "", ""], "r": "A", "e": "【定位】第2章，第4节，知识点1：电力系统的负荷\n【解析】各种负荷关系为：（1）发电负荷=厂用电负荷+供电负荷；（2）供电负荷=电网损耗+综合用电负荷（各种用户的负荷之和）。根据以上关系可知，供电负荷等于发电负荷减去厂用电负荷，故答案选A。", "l3": "电力系统", "l4": "第2章"}, {"id": "34515", "t": "2", "q": "电力网络中，消耗电能的元件是（ ）。", "a": ["<p>电阻<\/p>", "<p>电抗<\/p>", "<p>电导<\/p>", "<p>电纳<\/p>", "", ""], "r": "AC", "e": "<p>【定位】第3章，第1节，知识点3：阻抗支路的计算，知识点4：导纳支路的计算 【解析】电阻中有电流通过时会产生有功功率损耗，属于消耗电能的元件，电导主要对应线路电晕、绝缘子泄漏带来的有功电能损耗，同样消耗电能，电抗和电纳只进行无功功率的储存与交换，不消耗有功电能，因此消耗电能的元件为电阻和电导，本题选AC。<\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34630", "t": "2", "q": "关于抽水蓄能式水电厂的效益，正确的是（ ）。", "a": ["容量效益", "提高火电设备利用率", "节能效益", "对环境没有污染且可美化环境", "", ""], "r": "ABCD", "e": "【定位】第4章，第1节，知识点4：抽水蓄能电厂\n【解析】抽水蓄能水电厂在用电低谷时抽水蓄能、用电高峰时放水发电，可作为系统备用容量具备容量效益，能够承担调峰、调频任务，减少火电机组频繁启停与深度调峰，有效提高火电设备利用率，优化电源调度实现节能减排带来节能效益，电站运行过程中不产生废气、废渣等污染物，库区水域还能改善区域生态、美化周边环境，因此四个选项描述均正确。", "l3": "电力系统", "l4": "第4章"}, {"id": "33774", "t": "1", "q": "35kV架空输电线路绝缘子串由3片绝缘子片串联组成，同型号的绝缘子用于220kV架空输电线路时绝缘子串中绝缘子片数应不少于（ ）。", "a": ["<p>18片<\/p>", "<p>17片<\/p>", "<p>16片<\/p>", "<p>13片<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/NxHiFdzS007294YpUBvBb23N0OLVcGuW1UMKlnFW.png\"><\/p>", "l3": "电力系统", "l4": "第2章"}, {"id": "35860", "t": "1", "q": "220kV降为110kV的降压变，两侧均与线路相连，则变比为（ ）。", "a": ["220/110", "242/110", "220/121", "242/121", "", ""], "r": "C", "e": "【定位】第1章，第2节，知识点2：电力系统额定电压的规定\n【解析】高压绕组额定电压等于线路额定电压220kV，低压绕组额定电压高于线路额定电压10%。", "l3": "电力系统", "l4": "第1章"}, {"id": "34533", "t": "3", "q": "短路容量越大，系统阻抗也越大。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/XQDcksImhCbuRE3K7qBGG22c0l7eWsq7cLEdaqEW.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34556", "t": "1", "q": "火力发电厂的能量转换过程是（ ）。", "a": ["燃料的化学能→热能→机械能→电能", "燃料的化学能→机械能→热能→电能", "热能→燃料的化学能→机械能→电能", "机械能→燃料的化学能→热能→电能", "", ""], "r": "A", "e": "【定位】第4章，第1节，知识点2：火力发电厂\n【解析】难度：2。火电厂种类虽然很多，但从能量转换的观点分析，其生产过程是基本相同的：燃料的化学能→热能→机械能→电能。化学能→热能（通过锅炉实现），热能→机械能（通过汽轮机实现），机械能→电能（通过发电机实现），BCD选项生产顺序错误。", "l3": "电力系统", "l4": "第4章"}, {"id": "34629", "t": "2", "q": "抽水蓄能电厂在系统中的作用包括（ ）。", "a": ["调峰、填谷", "事故备用", "调频、调相", "黑启动", "", ""], "r": "ABCD", "e": "【定位】第4章，第1节，知识点4：抽水蓄能电厂\n【解析】难度：1。抽水蓄能电厂在系统中的作用：调峰、填谷、事故备用、可作为黑启动电源、调频、调相、蓄能。", "l3": "电力系统", "l4": "第4章"}, {"id": "34842", "t": "2", "q": "构网型储能的技术特性包括（ ）。", "a": ["<p>本质是电压源<\/p>", "<p>主动支撑电网<\/p>", "<p>依赖电网同步信号<\/p>", "<p>适应新型电力系统<\/p>", "", ""], "r": "ABD", "e": "【定位】第6章，第2节，知识点5：构网型储能技术。\n【解析】构网型储能本质是电压源（A正确），可主动支撑电网（B正确），无需依赖电网同步信号（C错误），适应新型电力系统（D正确）。", "l3": "电力系统", "l4": "第6章"}, {"id": "33786", "t": "1", "q": "电力系统有功最小负荷与用户有功最小负荷之和的关系是（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/rygNa8pjCcqMVbINHYC0Rmw4Kh9ymfQiGwu3xIwi.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/eOs8Gr5qU9rP50cZAZgzYJWHom1VUESpA7ThL1HX.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/6asnG8SNqUueWAhKPf80FVuzaW0C2HWmWNtfv7Rh.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/crK3lCmbtBN5QrF5SA08ePuq3HzgUp2DeYcZmKjX.png\"><\/p>", "", ""], "r": "B", "e": "【定位】第2章，第4节，知识点3：电力系统常用的负荷曲线\n【解析】由于电力系统各用户最小负荷出现的时间不相同，所以总负荷曲线的最小负荷大于系统各用户最小负荷之和。", "l3": "电力系统", "l4": "第2章"}, {"id": "34724", "t": "1", "q": "区内故障动作而区外故障不动作，体现的是继电保护的（ ）。", "a": ["<p>快速性<\/p>", "<p>选择性<\/p>", "<p>可靠性<\/p>", "<p>灵敏性<\/p>", "", ""], "r": "B", "e": "【定位】第5章，第3节，知识点1：电网保护基本原理\n【解析】在尽可能小的区间内正确切除故障，是继电保护选择性的体现，故选B。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "33869", "t": "1", "q": "电力线路中，电纳参数B主要反映电流流过线路产生的（ ）。", "a": ["热效应", "电场效应", "磁场效应", "电晕损耗", "", ""], "r": "B", "e": "【定位】第2章，第3节，知识点3：单回架空输电线路的参数及其计算\n【解析】根据电力线路的等值电路可知，线路的电阻反映线路产生的热效应，电抗反映线路的磁场效应，电导反映线路的电晕损耗，对地电容反映线路产生的电场效应，故正确答案选B。", "l3": "电力系统", "l4": "第2章"}, {"id": "33886", "t": "1", "q": "<p>近似计算时，35kV电网电压的平均额定电压为（ ）。<\/p>", "a": ["<p>35kV<\/p>", "<p>36.75kV<\/p>", "<p>37kV<\/p>", "<p>38.5kV<\/p>", "", ""], "r": "C", "e": "【定位】第2章，第5节，知识点4：平均额定电压\n【解析】同一电压等级电网中，各元件的额定电压并不完全相同，近似计算时，为简化计算，规定各元件取相同的额定电压，这个额定电压近似为该电压等级各元件的最高额定电压和最低额定电压的平均值，称为“平均额定电压”。", "l3": "电力系统", "l4": "第2章"}, {"id": "33852", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/SmqDj8UaoxBYEdfRBA8L9BUw7jNEbOxgCy06mKXB.png\"><\/p>", "a": ["<p>110/35<\/p>", "<p>110/38.5<\/p>", "<p>121/38.5<\/p>", "<p>121/35<\/p>", "", ""], "r": "B", "e": "【定位】第2章，第5节，知识点6：变压器的额定变比、实际变比、平均额定变比、标准变比与非标准变比\n【解析】有载调压变压器的抽头在高压侧。", "l3": "电力系统", "l4": "第2章"}, {"id": "33912", "t": "2", "q": "以变压器额定电压和额定容量为基准值时，关于变压器参数标幺值正确的有（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260731/6NFnz7BliLJH6DZWvTDJXCFZbpJvh4anXSieS16M.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260731/ItfY1ZIVLvkwLUUYe6Qz9qaKhHC4cPhjfrG9XqRT.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260731/bStdErOQ4aAxUThVmhXViik4rKvvrC2SQsDwoguE.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260731/nlUmW0pzmZcAKHmNlKetF7wdpbMPS5Guaj85RraS.png\"><\/p>", "", ""], "r": "ABCD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260731/4g3pcpRigcUlp8QjjNTmskHOOIpmZcA6VHKGqo2q.png\"><\/p>", "l3": "电力系统", "l4": "第2章"}, {"id": "34782", "t": "2", "q": "当继电保护反应电气元件的不正常运行状态，并根据运行维护条件而动作于（ ）。", "a": ["发出信号", "减负荷", "跳闸", "停运发电机组", "", ""], "r": "ABC", "e": "【定位】第5章，第1节，知识点2：电力系统的特点及运行状态的分类\n【解析】当继电保护反应电气元件的不正常运行状态，并根据运行维护条件而动作于发出信号、减负荷和跳闸，故选ABC。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "34618", "t": "1", "q": "对环境污染大的发电厂是（ ）。", "a": ["火电厂", "水电厂", "太阳能电厂", "风力发电场", "", ""], "r": "A", "e": "【定位】第4章，第1节，知识点2：火力发电厂\n【解析】电力工业中的火力发电厂是一个污染源。在运行过程中会产生相当数量的固体与气体废料，造成对大气与水源的严重污染，所以要控制发电厂排放的烟气成分（如硫的氧化物SO2、氮的氧化物NO2及烟尘等）、烟气温度及扩散速度、冷却水流出温度与流速、灰的排放等。", "l3": "电力系统", "l4": "第4章"}]}]};
+
+const KEY = 'ly:' + DATA.id;
+const store = {
+  load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {} } catch(e){ return {} } },
+  save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)) } catch(e){} }
+};
+let S = store.load();
+S.wrong = S.wrong || {}; S.collect = S.collect || {}; S.pos = S.pos || {};
+S.ans = S.ans || {}; S.stats = S.stats || {r:0,w:0};
+store.save(S);
+
+const $ = id => document.getElementById(id);
+const app = $('app'), hTitle = $('hTitle'), backBtn = $('back'), starBtn = $('star');
+let sess = null;   // {list, idx, mode, key}
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1400); }
+function allQ(){ return DATA.chapters.flatMap(c=>c.qs); }
+function chapterWrongCount(c){ return c.qs.filter(q=>S.wrong[q.id]).length; }
+function chapterDone(c){ const p=S.pos[c.k]; return p==null?0:Math.min(p,c.qs.length); }
+function esc(s){ return (s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function renderHome(){
+  sess = null; backBtn.style.display='none'; starBtn.style.display='none';
+  hTitle.textContent = DATA.name;
+  const total = allQ().length, wrongN = Object.keys(S.wrong).length, colN = Object.keys(S.collect).length;
+  app.innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${total}</b><span>总题量</span></div>
+      <div class="stat"><b style="color:var(--ok)">${S.stats.r}</b><span>答对</span></div>
+      <div class="stat"><b style="color:var(--bad)">${S.stats.w}</b><span>答错</span></div>
+      <div class="stat"><b style="color:#ffb020">${wrongN}</b><span>错题</span></div>
+    </div>
+    <div class="modes">
+      <button onclick="startAll()">顺序练习</button>
+      <button onclick="startRandom()">随机练习</button>
+      <button class="warn" onclick="startWrong()">错题本<em class="pill">${wrongN}</em></button>
+      <button onclick="startCollect()">收藏<em class="pill">${colN}</em></button>
+    </div>
+    <div class="card">
+      ${DATA.chapters.map((c,i)=>{
+        const done = chapterDone(c), pct = c.qs.length? Math.round(done/c.qs.length*100):0;
+        return `<div class="ch" onclick="startChapter(${i})">
+          <div class="t"><b>${esc(c.n)}</b><span>${c.qs.length} 题 · 错题 ${chapterWrongCount(c)} · 已做 ${done}</span>
+          <div class="bar"><i style="width:${pct}%"></i></div></div>
+          <div style="color:var(--sub)">›</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function begin(list, mode, key){
+  if(!list.length){ toast('这里还没有题目'); return; }
+  sess = {list, idx:0, mode, key, done:{}};
+  backBtn.style.display=''; starBtn.style.display='';
+  showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
+}
+
+function startChapter(i){
+  const c = DATA.chapters[i];
+  const pos = S.pos[c.k] || 0;
+  begin(c.qs.slice(), 'chapter', c.k);
+  sess.idx = Math.min(pos, c.qs.length-1);
+  showQ();
+}
+function startAll(){ begin(allQ(), 'all', 'ALL'); }
+function startRandom(){ begin(allQ().sort(()=>Math.random()-0.5), 'random', 'RND'); }
+function startWrong(){
+  const list = allQ().filter(q=>S.wrong[q.id]);
+  list.sort((a,b)=>(S.wrong[b.id].n||0)-(S.wrong[a.id].n||0));
+  begin(list, 'wrong', 'WRONG');
+}
+function startCollect(){ begin(allQ().filter(q=>S.collect[q.id]), 'collect', 'COL'); }
+
+const TYPE_NAME = {1:'单选', 2:'多选', 3:'判断'};
+function typeOf(q){ return TYPE_NAME[q.t] || '单选'; }
+function isMulti(q){ return q.t === 2; }
+let draft = {};          // 多选题暂存：qid -> [选项字母]
+
+function sameSet(a, b){
+  const x = (a||'').split('').filter(Boolean).sort().join('');
+  const y = (b||'').split('').filter(Boolean).sort().join('');
+  return !!x && x === y;
+}
+
+function grade(q, answer){
+  const ok = sameSet(answer, q.r);
+  S.ans[q.id] = {a: answer, ok};
+  let rec = S.wrong[q.id];
+  if(ok){
+    S.stats.r++;
+    if(rec){ rec.s = (rec.s||0)+1; if(rec.s >= 2){ delete S.wrong[q.id]; toast('已掌握，移出错题本'); } }
+  } else {
+    S.stats.w++;
+    if(!rec) rec = S.wrong[q.id] = {n:0,s:0};
+    rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
+  }
+  delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
+  store.save(S);
+  showQ();
+}
+
+function showQ(){
+  const q = sess.list[sess.idx];
+  if(!q){ renderHome(); return; }
+  if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
+  const ans = S.ans[q.id];
+  const answered = isAnswered();
+  const multi = isMulti(q);
+  const sel = draft[q.id] || [];
+  const star = !!S.collect[q.id];
+  starBtn.classList.toggle('on', star);
+  hTitle.textContent = `${DATA.name} · ${sess.idx+1}/${sess.list.length}`;
+
+  const opts = q.a.map((a, i)=>{
+    const L = 'ABCDEF'[i];
+    if(!a || !a.replace(/<[^>]+>/g,'').trim() && !/img/i.test(a)) return '';
+    let cls = 'opt';
+    if(answered){
+      if((q.r||'').includes(L)) cls += ' right';
+      else if((ans.a||'').includes(L)) cls += ' wrong';
+    } else if(multi && sel.includes(L)) cls += ' sel';
+    return `<button class="${cls}" onclick="pick('${L}')">
+      <span class="lab">${q.ap[i] ? '' : L}</span>
+      <span class="cnt">${a}</span>
+    </button>`;
+  }).join('');
+
+  const hint = multi && !answered
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead"><span><em class="tag t${q.t}">${typeOf(q)}</em>${esc(q.l4 || q.l3)}</span></div>
+      <div class="title">${q.q}</div>
+      ${opts}
+      ${hint}
+      <div class="ana" id="ana" style="${answered?'display:block':''}">
+        <div><b>正确答案：${q.r || '—'}</b>${answered?`　<span style="color:${ans.ok?'var(--ok)':'var(--bad)'}">我的答案：${ans.a || '—'}</span>`:''}</div>
+        ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
+      </div>
+      ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
+      <div class="nav">
+        <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
+        <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
+      </div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function pick(L){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  if(isMulti(q)){
+    const cur = (draft[q.id] || []).slice();
+    const i = cur.indexOf(L);
+    if(i >= 0) cur.splice(i,1); else cur.push(L);
+    draft[q.id] = cur.sort();
+    showQ();
+    return;
+  }
+  grade(q, L);
+}
+
+function submitMulti(){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  const sel = (draft[q.id] || []).slice().sort().join('');
+  if(!sel){ toast('先选至少一个选项'); return; }
+  grade(q, sel);
+}
+function prevQ(){ if(sess.idx>0){ sess.idx--; showQ(); } }
+function nextQ(){
+  if(sess.idx < sess.list.length-1){ sess.idx++; showQ(); }
+  else { toast('这一组做完了'); renderHome(); }
+}
+function toggleStar(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  if(S.collect[q.id]) delete S.collect[q.id]; else S.collect[q.id] = true;
+  store.save(S); showQ();
+}
+
+backBtn.onclick = renderHome;
+starBtn.onclick = toggleStar;
+
+/* 支持 ?chapter=0 直接进章节 */
+const m = location.search.match(/chapter=(\d+)/);
+if(m) startChapter(+m[1]); else renderHome();
+</script>
+</body>
+</html>

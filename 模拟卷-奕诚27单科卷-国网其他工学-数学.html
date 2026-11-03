@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>珞研刷题</title>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e9ecf1;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{border:0;background:#eef2f8;color:#2b3648;border-radius:10px;padding:8px 12px;font-size:14px}
+  .btn.primary{background:var(--pri);color:#fff}
+  main{padding:12px;max-width:820px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .stats{display:flex;gap:8px;margin-bottom:12px}
+  .stat{flex:1;background:#fff;border-radius:12px;padding:10px 12px;text-align:center}
+  .stat b{display:block;font-size:20px}
+  .stat span{color:var(--sub);font-size:12px}
+  .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .modes button{padding:12px 6px;border-radius:12px;border:0;background:#fff;font-size:14px;color:#2b3648}
+  .modes button.warn{color:var(--bad)}
+  .ch{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+  .ch:last-child{border-bottom:0}
+  .ch .t{flex:1;min-width:0}
+  .ch .t b{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch .t span{color:var(--sub);font-size:12px}
+  .bar{height:4px;background:#eef1f5;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri)}
+  .qhead{display:flex;justify-content:space-between;color:var(--sub);font-size:13px;margin-bottom:8px}
+  .tag{font-style:normal;display:inline-block;border-radius:6px;padding:1px 7px;margin-right:8px;font-size:12px;color:#fff;background:#8a94a6;vertical-align:1px}
+  .tag.t1{background:#1a6dff}.tag.t2{background:#f08c00}.tag.t3{background:#0a9f5b}
+  .hint{margin-top:12px;font-size:13px;color:#8a6d3b;background:#fff8e6;border-radius:10px;padding:8px 12px}
+  .btn.wide{display:block;width:100%;margin-top:14px;padding:13px;font-size:16px}
+  .title{font-size:16px;line-height:1.8;word-break:break-word}
+  .title img,.opt img,.ana img{max-width:100%!important;height:auto!important;vertical-align:middle}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f7f9fc;border:1px solid #e9edf4;border-radius:12px;padding:12px;margin-top:10px;font-size:15px;color:var(--tx);line-height:1.7}
+  .opt .lab{flex:0 0 22px;height:22px;border-radius:50%;background:#dfe5ee;color:#5b6577;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .opt .cnt{flex:1;min-width:0;word-break:break-word}
+  .opt.sel{border-color:var(--pri)}
+  .opt.right{background:#eaf8f1;border-color:#9fdcbd}
+  .opt.right .lab{background:var(--ok);color:#fff}
+  .opt.wrong{background:#fdeeec;border-color:#f3b8b1}
+  .opt.wrong .lab{background:var(--bad);color:#fff}
+  .ana{margin-top:12px;background:#f2f7ff;border-radius:12px;padding:12px;font-size:14px;color:#33405a;display:none}
+  .ana b{color:var(--ok)}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1;padding:12px}
+  .star{background:none;border:0;font-size:20px;color:#c9ced8;padding:0 4px}
+  .star.on{color:#ffb020}
+  .empty{color:var(--sub);text-align:center;padding:40px 0}
+  .pill{display:inline-block;background:#eef2f8;color:#5b6577;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(29,33,41,.9);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <button class="btn" id="back" style="display:none">‹ 返回</button>
+  <h1 id="hTitle">珞研刷题</h1>
+  <button class="star" id="star" style="display:none">★</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"id": "mock-28346017", "name": "奕诚27单科卷-国网其他工学-数学", "chapters": [{"k": "数学", "n": "数学（40 题）", "qs": [{"id": "29304", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/W9j6F6xJIy5tHSCsvW8oQgLWry0cizwfuvgXiXEL.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/tUxOe6IjFeAPptZqBQuDHq5sJMgCUGFfrUk5yB23.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/cpFpHWryhrX1LCUkHapS8dHg8C3IpoRe04fR2fEr.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/7SrzsVpZ9mcoMcINioGXcW1RWE6fmiNMI0jLgOHN.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/tc8X3J8dSG9N8dd0uaGlP55w3U74771pe3ketlvx.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/hB9DIXoYElnbj9nKS1UsKPBwrs5EG1Ie6FsWEOqs.png\"><\/p>", "l3": "数学", "l4": "第2章"}, {"id": "38658", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/C6LJrcbavRzNAo2Mw9iBQMGm6GVWHpbDursxcNOd.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/1XtUDhWrcSda6xvm3I7N99IIhXoCgtB6qsKZcJjH.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/jYkdPtrLM1laxBnwGaqM4ZTdydMrEiNw9KOV4kNC.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/QsRhIyKH8TqwYO0rxJfSw82Ul9SCpDYcVD1WHrNg.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/7xjlLftNCzVNcnJrYYW1H8f0IFIA2tWmo3Aa9Ftf.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/vS4cg54I2kz0uGiTYG3cDmI9DJTg79ZDASajnnIq.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "38616", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/3AZCMV3lbCmtSV7QCb5ISLfwW6cCLGPUdFB7LIe9.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/AcbsJQWfFWdebPQRghGXzHCe5wBGFEQg28fVu9WJ.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/mkHa6jTnHMoCcCdVghnA7QzgSzzO3oRqMb8vZC21.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/N4pxWsrbLNv7EmeTY26vpfygZstWM3SVosIHdzUX.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/HacG2FBbyvdxhwutxOx8PVyJ39VJAwdCuLKoHgc5.png\"><\/p>", "", ""], "r": "ABD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/FXKiINJ8YpT4C1dfZEMnQHmHvyjo8ZBAqaLqdVe2.png\"><\/p>", "l3": "数学", "l4": "第10章"}, {"id": "38748", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/3ukZo68lPB2AGvLg3TSPhGVYX6zsjlPHOITzzo7I.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/rIdwhUlG4lDpkmmn43dfuCxsgntuumlu4FVOlp5u.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/k68s4RMbCLL6hiWd8pSZUdB6Otcov8Ab8FjTvPiD.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/AoYfApwcDwuXFQYIRcmrCWnRStmioGhcOaqFrEBd.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/Ir5JkZXKKa51dTDwtefPCAJpZeBxYiITr8nvMtrK.png\"><\/p>", "", ""], "r": "AD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/Rknwipc1goDq8hQwq5TNiLrRreF2CdpxoMkYIHwi.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "37784", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/5ihLvKOLdDg6N87rAWU35yo5MmsdyVfpdDZ6Tahf.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/P2sXQPWisM1wv1lbm8G9QYlwrCWtzmeJaTSE8NqJ.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/N4trHhH6jcqkNg1RCVYJbACLfWBZRG7GlMF5myxW.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/soSn54UilmoOHVcKVDSpOaSjx3NdcC2IXcGQUnMw.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/SPFMPUv2wWYk2dIRu8phQVMf3lcQQoAjNmsibJCm.png\"><\/p>", "", ""], "r": "BD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/46Gxtc4Tyxs6Bv23JZ6t4zpwnYeRxSgMFSZ3WNzM.png\"><\/p>", "l3": "数学", "l4": "第7章"}, {"id": "38582", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ski4u0xtWlJ544riLp2K8WUggviMAJXqdXUqNr8t.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/CoFGlRUix54znohsUZZ1Tdu41BNl299JPtOWibMn.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/KF0o33c3SjhuGg5kcOO5uuJWbenulpGqVwSgaYWO.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/xIuMNPm3PBWlhHLTgHufqT3f6eLseVOXVB3EFRgl.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/dUVP19CD3ET8CEb7seAoLVgf1b6Ak4sQJx9sVEsb.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/t2jSN8MkrpI1Yg13Q9CXBrp4Y0XvGvMrK3SouXHq.png\"><\/p>", "l3": "数学", "l4": "第10章"}, {"id": "30143", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/DXVlkMFNbSMBnQEJfz2MdRAoVRikD9AK4TXU31JC.png\"><\/p>", "a": ["<p>0<\/p>", "<p>1<\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/8ViwbUxDsWQQtPzUVoGuL46jTXiEsyNrzfjlYEaZ.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/NnfXeI3TqCgVpukN2HOMtLSXVsqT1wyYk8B3vFJe.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/WSe7xy1W0Z4fPeFmcfOwQSstb8mKlDJuYSNPMXzZ.png\"><\/p>", "l3": "数学", "l4": "第4章"}, {"id": "27677", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/O63QS6MxGt5I5ryTMFUn9WtIDSXGfOxZSjKWVtSK.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/HTkF7BmAjWBFtGuJ9KRi7jeUTFdSm1ZcCBW4moIQ.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "38766", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ofTlWdMOjU1R2g2adj2F0ezaYMv0ABNSvk6f7S9a.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/PuTshQO7ifcb2wtev5mYj6lrRdnRunbWR2QcWCPB.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "37995", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/GkPo1OwJPG9eHgeTjU0ZXsIxtuQofAd8HICSxbx7.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/eCsrtU7EQv8cMfRo8wsu58slnDl4rGAawZIYLowT.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/YF7DlyhoJPKwHpeVgyUyem8QljAwujPNF0ts8TPQ.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/93N3llMIk9PmmUepo6upmgarFLgAizjfod5PPRkU.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/YJXeVkD8TIfSAz2pIDn5K98oRc1z3T0ImqYgwFju.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/3m5r3KeVUGK93RUjXwzpbZHb48cmm6jMhlaZ1aWN.png\"><\/p>", "l3": "数学", "l4": "第9章"}, {"id": "38722", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/AUCWWiUmtnfsNXMpwVZqC0XT3vfHG0Y4CEswiaH1.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/naZaE7JbAQVHeRa5H2Kl0nvTIyqE5aXd2d5YdlsS.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/RxSxcSkiLbJd6mZYVRN0fwpBodhVoXvsiF6QWohj.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/SlgEq5Ti9NBBh5lIAOiKXs080te3LTnDJwM5JRwm.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/L3Is70wl26EM8CMeSBMOePqcDdWKaoirHV3Xr9a4.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ZY4Nrd2Fa3NRwoqdU6mcjtprQFMbdXvmpXsVgtG3.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "38614", "t": "2", "q": "<p>下列矩阵中是正定矩阵的为（ ）。<\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/Eh1MtpKgsE8W3uuuY8srMSe3ty3IT9IbQxzpB3F8.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/grmxKWqbyGX69kGS0pc15zagxCYL6KbqbHdnRa5B.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/n2qPsBmBCTrxTLYLA1FizZx7WcpbnFpL3OzJvQ4N.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/8AtauJsMOHaWkNqwc55N3xPdLpFoClHlv2BnFhI8.png\"><\/p>", "", ""], "r": "AC", "e": "【定位】本题考查10章，2节，知识点3。\n【难度】中等+计算\n【解析】顺序主子式大于0，B不满足实对称矩阵，D不满足二阶顺序主子式大于0。", "l3": "数学", "l4": "第10章"}, {"id": "29380", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/5D3kw1iqOdPj1GMBbgY0OcDV9gyUpQBz3xPFhmT0.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/0M7HJ7R1G2XmfzCSsi6Ks1Kzm4oXkjEl3aREiky7.png\"><\/p>", "l3": "数学", "l4": "第2章"}, {"id": "38801", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/sV68lBCLwhWCkl1zgQAeVVJTWL5szszk3677ycyj.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ZAPlkyvbHXF4oOng010Vvuc1eaFGPqJWRvQuxUId.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/UAVlUWGQC3rcvObsyJjr9dZM6TyCNkwjPuheCSM5.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/uZqvPoY3i8kbIYQvvhiydrtl5BgwWmtozQSB7Twp.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/eWtNAn3FhxFk0qtqCwOmMoK2dsxIe3kGapYYT6Vf.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/5kJPD93bmhOYRqF3A15Jsznrpz9CEtsDuFFf1617.png\"><\/p>", "l3": "数学", "l4": "第13章"}, {"id": "37760", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/QHfQpaNtTumjWkTEc9lGYjd8YxslmWvgnIGnxjUn.png\"><\/p>", "a": ["<p>-3<\/p>", "<p>-1<\/p>", "<p>1<\/p>", "<p>3<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/UBg8czFvG9GNhW6nGxzMfKZQ5pyQMtHngVhQiAq9.png\"><\/p>", "l3": "数学", "l4": "第7章"}, {"id": "27661", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/fAJWibPnE07ofg0VIagMjcy6jiJCo3f77o29fJUJ.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/mCPsR3A42fUT54vMOUCRuhjYlEp7RsFngTtBTBk7.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/qAgPAtXoOOe5L6YZplmxgtXm0CPW1xH6gnnlHy1s.png\"><\/p>", "<p>b=1<\/p>", "<p>b=2<\/p>", "", ""], "r": "AC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/NaEfGLXxjFL0ewzrqpQM1My7n4fnghcExnKVQtXB.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "37781", "t": "2", "q": "设A为可逆矩阵，则与A一定有相同特征向量的矩阵为（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/gKQB96FTSyJB6NAWmYWxvDwQXJSJUodnOEM3HiYl.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/AbNB9wmEmWOwnQjrNlB0Ps5fnkkZX4jr6u8od8gw.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/AL2zFDmvhEcj2rPRdInybcoVYKPPo9SJSNnYVrCT.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/wzN4cBPSrGgxgMDbTi1eZ02jtAe7UqvMKo1I3VZX.png\"><\/p>", "", ""], "r": "ABC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/80uyCo6ETwMGrH1T7W9AeuZ0cMeCELhfRu6HnMSm.png\"><\/p>", "l3": "数学", "l4": "第7章"}, {"id": "37738", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/4j2CsoNgjJq6BUENz2jEPTU303OrVGCDomlkLiXq.png\"><\/p>", "a": ["<p>-1<\/p>", "<p>-2<\/p>", "<p>-3<\/p>", "<p>0<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/cYZDLM4ELwfuo3Fe6BKX0TO1w9ot1vj94DkGo3sN.png\"><\/p>", "l3": "数学", "l4": "第7章"}, {"id": "38635", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/Z9AmDifRd82BcOfpnz5tKN5gP3Np4uIuYVQjTq5f.png\"><\/p>", "a": ["<p>A,B互斥<\/p>", "<p>A,B独立<\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/wnMt5IHp5Oa9MnDY93K6gUKpibSAZpkqERpWJUJH.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/KuSGjuAWPZ0tNydxzGtNMe8Gu6SzfMhJrHjDBzDm.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/cigzGcKFBk4S4ml2fLavMzWQgXFkxJCUAjUCasqf.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "38667", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/cxRs02ZFZ6rXSsRDFLsSt5GLT5oH33LG69btT39y.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/sxXqoEfkm0xDmUes1oiD1ppM2HbmBWuGiBh8Zuq0.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/yd3VteDCCr007nZKqVggadWxu4xTy9lRq8i49DK7.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/RjGNEa5vTSlMfyoDZPoZtYvk6xNrU256GGM17rnO.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/r8CxN7epjFDz0mL7kKeP2ToXx0vZZFBYh8GKZ74a.png\"><\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/2dWyyqIFCLYI6RkFDxFYkqE74U5bFnR6oZuAISSq.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "38001", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/Zq8gD4T5qM2XU155MtlqkME5Wt2Six782nKPsvYz.png\"><\/p>", "a": ["<p>每一个向量都能由其余三个向量线性表示<\/p>", "<p>只有一个向量能由其余三个向量线性表示<\/p>", "<p>只有一个向量不能由其余三个向量线性表示<\/p>", "<p>每一个向量都不能能由其余三个向量线性表示<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/4zcSBb6j914t4HINct1fLBMw7lYJXcE9LTyAfTJE.png\"><\/p>", "l3": "数学", "l4": "第9章"}, {"id": "38652", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ZMwvSYtjDd7YgE2MCiz64rzmsaik3UbGw06MtNHr.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/I8qn0YYZUJzOEsC4roT4DWMXXl50O7ZvuzCns90X.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/S3NaOx8JBow63VhQeNr40Uw6WXwIAGigExH3U332.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/mp4s2DhStkC6LbDIzSSNw4i0c1UyKC4WyVH5dyE4.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/QI0wZFIhwvREaXHCKwWMquL9CecB8zAehWe0P6Gg.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/h9ttkrSzFcdoFRdHBP66tZQDcmfMj6dLXGAsxsYb.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "30100", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/67BrSKrbYDdedH7ZwZ4RHAB5KhCYSa9wYVp1KwD5.png\"><\/p>", "a": ["<p>一定连续<\/p>", "<p>不连续<\/p>", "<p>不一定连续<\/p>", "<p>无法判断<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/t76ct6G11tY7nP74h2eGUPoBNEd0NJdU67vKQhLl.png\"><\/p>", "l3": "数学", "l4": "第4章"}, {"id": "27643", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/tF1FHhHvC6TEMOaxWSNQ7cFnYwavKdBP95gB681B.png\"><\/p>", "a": ["<p>没有间断点<\/p>", "<p>有一个第一类间断点<\/p>", "<p>有两个以上第一类间断点<\/p>", "<p>有一个间断点，但类型不确定<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/2UfAOFQVH0u6F1639yyAi4RrfNvRhJC64rFVJ2qe.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "31728", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/LHl5c9zE9VkN5qEIQTt7zW9b4T6cQSWvGR9Tm1AR.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/GarVjl7OP7P8ClRpsX219cjuLKgp1DjByOV0B5VP.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/gQuXC55dPJAGqVrO4beGXMlHKDj7fBWaqKwsMVt5.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/vLOGsGtFelQI8rOebmnxTk3G1mHl0yp4a6hPxkGn.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/VlenitxMUG5umUcz1NCK542JaaogAHYSTJZIZy0R.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/v9T6pSQ4BpmSJRcpywaMFxoMT4TtJLKreDxuGLgl.png\"><\/p>", "l3": "数学", "l4": "第6章"}, {"id": "37933", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/MU7Mw79D43tURxMiw2gGIdy4UjG33VmD9VFUMWS6.png\"><\/p>", "a": ["<p>3或4<\/p>", "<p>1或2<\/p>", "<p>1或3<\/p>", "<p>2或4<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/DbVHw2vNcGaZXz2elXjzIXBFZgWCsUP92NA6j3iG.png\"><\/p>", "l3": "数学", "l4": "第8章"}, {"id": "37960", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/laEt7XK46d4kPGnFyng2V7xJxv1YObkUFdIlCf8x.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/hxDL6l2lyE5GQik2UIudhV3emAq0P6KeagmlYcw9.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/itzGjbmWZOYTbVmooKRJMm62pwsQGxClXU9aVkX6.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/bkFnhKfgl9Y5KfyNOx5GauA2m31K2JaZ3g0n89wE.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/VQHgNjz1SJT8h2F2oJwKj4930U3xRjWtVoZlpGq4.png\"><\/p>", "", ""], "r": "BCD", "e": "【定位】本题考查8章，1节，知识点2。\n【难度】简单+计算\n【解析】方程组的解的结构", "l3": "数学", "l4": "第8章"}, {"id": "30173", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/AIGl4Sza9RJBzJfSTOB3reLBul3tfdzSweKFPN5X.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/J0VgAyimzBb4NaYsfSPfJeKNEWAjxLvMQtvEh1kj.png\"><\/p>", "l3": "数学", "l4": "第4章"}, {"id": "38638", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/kltmA5zwiaxCalq6KYIXc7ssl06kP6RtbeBoWkin.png\"><\/p>", "a": ["<p>0.1<\/p>", "<p>0.25<\/p>", "<p>0.5<\/p>", "<p>0.7<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/60D9TduQOgyNQGBYunm2E2jHbNXYaLXYTcFBud5w.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "31692", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/8MqJwM0rB1oMf4IYZ78SQ7VaBHAIOf7iyyprS73T.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/31PAf50LJghg4QWnLwprVxomS0rw8EOLmHzoGtG6.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/gUKmfsy6V124NtFGhfBHNWHjlaeiJPPYa2SXIvk0.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/XSDsAZEYiMPQMfyROckdDp88DXjvXeG9a7JIzERe.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/zMBjuKDibyvDFb9A3XkyIRO9VuHneYzJ98ZPEQ7Z.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/3GtgiS5VhoeyxiugjVwb3c79MNeGEJFxZs6E3QIv.png\"><\/p>", "l3": "数学", "l4": "第5章"}, {"id": "27646", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/769gwJ8jiAnM9O1arJBTVBtvHm5vkxhEmMcGPogX.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/UzQzReqwBtoZ9UecO2UhmlsfHmWq9LzPlgyo0LT9.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/XoHtiJjHmfDTLA56GO92jGCZV5FhU6vfKZUkZgzt.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/UCMhETDkpsYcMuXJTMmhSB5sEEVVwHdhpUPAGCQ2.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/ZegBMih9NquEGweu1hj798MdUm4qSY3QQMYXfAnU.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/YhBnvVH7v3KcanVlQEoiaVPF97ePLHOwFhSzOOg1.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "38780", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/DWKlPLrrR3gh3WA3PLw9ktNWBYYfcEF5654z9D3F.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/2cUkDlSNEGBNoh9lD3pxv1gw3Yu9auEyxtcL6diI.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/C67Xk05F6PBgxSyMNk2ZfTNxuqCehOitIZz8ck0T.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/h6jhWgijwakW85R8OYGRFS03Hd9mY6ynGuTf80ag.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/u1PspXVm3E3083nAQTQ82MBm1o86CUyFCjwRfAFu.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/XQMDJKglkzqosUWF8tMVRy81yA8bNNYzUoX1GqoF.png\"><\/p>", "l3": "数学", "l4": "第13章"}, {"id": "30150", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/PyTQGHGaSkhVBgHHXFM50Mg1zuewMOTPlc2c63UU.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/P7cnuUQPTW1h0MDvgUVWNIynVrZKRxJSWHmtoFUR.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/SyOgRxdBChLr5K4h2QtmE1pKYh2De4sTfHPtgAmT.png\"><\/p>", "<p>函数沿任一方向的方向导数都存在<\/p>", "<p>函数不一定连续<\/p>", "", ""], "r": "AC", "e": "【定位】本题考查4章，3节，知识点4。\n【难度】简单+计算\n【解析】可微必可偏导，函数沿任一方向的方向导数都存在。", "l3": "数学", "l4": "第4章"}, {"id": "38817", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/gKEKnuVE4tzwh6HRfvybuTSRPervJcJOc2aJt1Cp.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/TRwbV1oXaYwD8i2az14GyWhUa5XLndySEVVM3VFw.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/PrBI9pZmcLesempBDocQJlZQWdNJ6fWC1mai0uno.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/lNaVwToZTzK9917cqN8AgDo2u69hqZkl9OEnVlxD.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ry8ADiP5DOQk2DHqSXD6Ek64E30qwnVWF1ELmhAY.png\"><\/p>", "", ""], "r": "AD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/HIYnll1i05ymErcOMe8INCiNcgCkeKnv4goeayiY.png\"><\/p>", "l3": "数学", "l4": "第13章"}, {"id": "38629", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/AokostlYsF7vcZxVvP6H2vu6EabCBJGyQrD8eUKL.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/hDL6gV2wea0d5m5jo6B5by8bTEPO4GbgwU29TkA0.png\"><\/p>", "l3": "数学", "l4": "第10章"}, {"id": "31673", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/NiuRGPaovCXHaZx3HGoD3eczZVtKv0YpCa4vWuku.png\"><\/p>", "a": ["<p>[-2,0]<\/p>", "<p>（-2,0）<\/p>", "<p>(-2,0]<\/p>", "<p>[-2,0)<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/PxdSy0DPH44PBzc2gh0tlZpmCtzakQkSCxEwlY1B.png\"><\/p>", "l3": "数学", "l4": "第5章"}, {"id": "30059", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/MZgcMsRzuf121KwLLUICIO5rpq2hdtDXTndJ797w.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/yzvvYObWriLZ3UHVcNNM4HRbuFbqruBLHV1aXMBC.png\"><\/p>", "<p>0<\/p>", "<p>1<\/p>", "<p>2<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/8CglR7l7ICouGAzTV7QRckfZePCWJskwqo6Bt8Z7.png\"><\/p>", "l3": "数学", "l4": "第3章"}, {"id": "38676", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ewVXRdLMbAdIBiFA5xqn2fKgrREMX0N06QA49XmP.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/9Ya5FmM0ISejO4gCnAsKR5mqEzryX8T9Z4OjHdPe.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/dMNUaJkGB7pLkj3scZ5VLivXzZbbJWDCNi3Qwnq6.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/U4CLSWDHG2tqiUR7U37pfcFWYKR7sGYxjwNr38m8.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/btyo7F0sfSYme1sNnem9EeseguILh1xANa2JPFxj.png\"><\/p>", "", ""], "r": "AD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/d3oqZyspKcHxYFTvq3xuTq50cg2GB2D5yqwwF9ym.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "38792", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/CUKz7zT25uRjLlgx4rXlrUjXU0AERzFwEU0MlL0i.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/8sXKoVqJFQN4FRHyXrdM3GKWQLWoPDDAq1bqIoVL.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/qnknBApahSE5NNOQcGgSXaFVsTjTrmuZbWUosiAl.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/p7mqQXsJj7UHYn12czMxZJBlwFNfbfkN1jC0urRc.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/enkfILOkotEgyb7ItDK8TpkA05aICmhiNeQucozS.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/5uz1uXWrbYQJQfhzQE8pM0nbqo8jJt7pJCAVRF1N.png\"><\/p>", "l3": "数学", "l4": "第13章"}, {"id": "31716", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260911/a4IYOkPBLQppe9ttidZYJsHOPqo5IhBa3mdgaNUG.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260911/rL9SmGdBcRm963fQdEMxytHeWhO82eDmqPuMfpsp.png\"><\/p>", "l3": "数学", "l4": "第5章"}]}]};
+
+const KEY = 'ly:' + DATA.id;
+const store = {
+  load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {} } catch(e){ return {} } },
+  save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)) } catch(e){} }
+};
+let S = store.load();
+S.wrong = S.wrong || {}; S.collect = S.collect || {}; S.pos = S.pos || {};
+S.ans = S.ans || {}; S.stats = S.stats || {r:0,w:0};
+store.save(S);
+
+const $ = id => document.getElementById(id);
+const app = $('app'), hTitle = $('hTitle'), backBtn = $('back'), starBtn = $('star');
+let sess = null;   // {list, idx, mode, key}
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1400); }
+function allQ(){ return DATA.chapters.flatMap(c=>c.qs); }
+function chapterWrongCount(c){ return c.qs.filter(q=>S.wrong[q.id]).length; }
+function chapterDone(c){ const p=S.pos[c.k]; return p==null?0:Math.min(p,c.qs.length); }
+function esc(s){ return (s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function renderHome(){
+  sess = null; backBtn.style.display='none'; starBtn.style.display='none';
+  hTitle.textContent = DATA.name;
+  const total = allQ().length, wrongN = Object.keys(S.wrong).length, colN = Object.keys(S.collect).length;
+  app.innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${total}</b><span>总题量</span></div>
+      <div class="stat"><b style="color:var(--ok)">${S.stats.r}</b><span>答对</span></div>
+      <div class="stat"><b style="color:var(--bad)">${S.stats.w}</b><span>答错</span></div>
+      <div class="stat"><b style="color:#ffb020">${wrongN}</b><span>错题</span></div>
+    </div>
+    <div class="modes">
+      <button onclick="startAll()">顺序练习</button>
+      <button onclick="startRandom()">随机练习</button>
+      <button class="warn" onclick="startWrong()">错题本<em class="pill">${wrongN}</em></button>
+      <button onclick="startCollect()">收藏<em class="pill">${colN}</em></button>
+    </div>
+    <div class="card">
+      ${DATA.chapters.map((c,i)=>{
+        const done = chapterDone(c), pct = c.qs.length? Math.round(done/c.qs.length*100):0;
+        return `<div class="ch" onclick="startChapter(${i})">
+          <div class="t"><b>${esc(c.n)}</b><span>${c.qs.length} 题 · 错题 ${chapterWrongCount(c)} · 已做 ${done}</span>
+          <div class="bar"><i style="width:${pct}%"></i></div></div>
+          <div style="color:var(--sub)">›</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function begin(list, mode, key){
+  if(!list.length){ toast('这里还没有题目'); return; }
+  sess = {list, idx:0, mode, key, done:{}};
+  backBtn.style.display=''; starBtn.style.display='';
+  showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
+}
+
+function startChapter(i){
+  const c = DATA.chapters[i];
+  const pos = S.pos[c.k] || 0;
+  begin(c.qs.slice(), 'chapter', c.k);
+  sess.idx = Math.min(pos, c.qs.length-1);
+  showQ();
+}
+function startAll(){ begin(allQ(), 'all', 'ALL'); }
+function startRandom(){ begin(allQ().sort(()=>Math.random()-0.5), 'random', 'RND'); }
+function startWrong(){
+  const list = allQ().filter(q=>S.wrong[q.id]);
+  list.sort((a,b)=>(S.wrong[b.id].n||0)-(S.wrong[a.id].n||0));
+  begin(list, 'wrong', 'WRONG');
+}
+function startCollect(){ begin(allQ().filter(q=>S.collect[q.id]), 'collect', 'COL'); }
+
+const TYPE_NAME = {1:'单选', 2:'多选', 3:'判断'};
+function typeOf(q){ return TYPE_NAME[q.t] || '单选'; }
+function isMulti(q){ return q.t === 2; }
+let draft = {};          // 多选题暂存：qid -> [选项字母]
+
+function sameSet(a, b){
+  const x = (a||'').split('').filter(Boolean).sort().join('');
+  const y = (b||'').split('').filter(Boolean).sort().join('');
+  return !!x && x === y;
+}
+
+function grade(q, answer){
+  const ok = sameSet(answer, q.r);
+  S.ans[q.id] = {a: answer, ok};
+  let rec = S.wrong[q.id];
+  if(ok){
+    S.stats.r++;
+    if(rec){ rec.s = (rec.s||0)+1; if(rec.s >= 2){ delete S.wrong[q.id]; toast('已掌握，移出错题本'); } }
+  } else {
+    S.stats.w++;
+    if(!rec) rec = S.wrong[q.id] = {n:0,s:0};
+    rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
+  }
+  delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
+  store.save(S);
+  showQ();
+}
+
+function showQ(){
+  const q = sess.list[sess.idx];
+  if(!q){ renderHome(); return; }
+  if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
+  const ans = S.ans[q.id];
+  const answered = isAnswered();
+  const multi = isMulti(q);
+  const sel = draft[q.id] || [];
+  const star = !!S.collect[q.id];
+  starBtn.classList.toggle('on', star);
+  hTitle.textContent = `${DATA.name} · ${sess.idx+1}/${sess.list.length}`;
+
+  const opts = q.a.map((a, i)=>{
+    const L = 'ABCDEF'[i];
+    if(!a || !a.replace(/<[^>]+>/g,'').trim() && !/img/i.test(a)) return '';
+    let cls = 'opt';
+    if(answered){
+      if((q.r||'').includes(L)) cls += ' right';
+      else if((ans.a||'').includes(L)) cls += ' wrong';
+    } else if(multi && sel.includes(L)) cls += ' sel';
+    return `<button class="${cls}" onclick="pick('${L}')">
+      <span class="lab">${q.ap[i] ? '' : L}</span>
+      <span class="cnt">${a}</span>
+    </button>`;
+  }).join('');
+
+  const hint = multi && !answered
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead"><span><em class="tag t${q.t}">${typeOf(q)}</em>${esc(q.l4 || q.l3)}</span></div>
+      <div class="title">${q.q}</div>
+      ${opts}
+      ${hint}
+      <div class="ana" id="ana" style="${answered?'display:block':''}">
+        <div><b>正确答案：${q.r || '—'}</b>${answered?`　<span style="color:${ans.ok?'var(--ok)':'var(--bad)'}">我的答案：${ans.a || '—'}</span>`:''}</div>
+        ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
+      </div>
+      ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
+      <div class="nav">
+        <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
+        <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
+      </div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function pick(L){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  if(isMulti(q)){
+    const cur = (draft[q.id] || []).slice();
+    const i = cur.indexOf(L);
+    if(i >= 0) cur.splice(i,1); else cur.push(L);
+    draft[q.id] = cur.sort();
+    showQ();
+    return;
+  }
+  grade(q, L);
+}
+
+function submitMulti(){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  const sel = (draft[q.id] || []).slice().sort().join('');
+  if(!sel){ toast('先选至少一个选项'); return; }
+  grade(q, sel);
+}
+function prevQ(){ if(sess.idx>0){ sess.idx--; showQ(); } }
+function nextQ(){
+  if(sess.idx < sess.list.length-1){ sess.idx++; showQ(); }
+  else { toast('这一组做完了'); renderHome(); }
+}
+function toggleStar(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  if(S.collect[q.id]) delete S.collect[q.id]; else S.collect[q.id] = true;
+  store.save(S); showQ();
+}
+
+backBtn.onclick = renderHome;
+starBtn.onclick = toggleStar;
+
+/* 支持 ?chapter=0 直接进章节 */
+const m = location.search.match(/chapter=(\d+)/);
+if(m) startChapter(+m[1]); else renderHome();
+</script>
+</body>
+</html>

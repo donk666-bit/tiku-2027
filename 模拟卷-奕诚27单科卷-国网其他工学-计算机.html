@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>珞研刷题</title>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e9ecf1;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{border:0;background:#eef2f8;color:#2b3648;border-radius:10px;padding:8px 12px;font-size:14px}
+  .btn.primary{background:var(--pri);color:#fff}
+  main{padding:12px;max-width:820px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .stats{display:flex;gap:8px;margin-bottom:12px}
+  .stat{flex:1;background:#fff;border-radius:12px;padding:10px 12px;text-align:center}
+  .stat b{display:block;font-size:20px}
+  .stat span{color:var(--sub);font-size:12px}
+  .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .modes button{padding:12px 6px;border-radius:12px;border:0;background:#fff;font-size:14px;color:#2b3648}
+  .modes button.warn{color:var(--bad)}
+  .ch{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+  .ch:last-child{border-bottom:0}
+  .ch .t{flex:1;min-width:0}
+  .ch .t b{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch .t span{color:var(--sub);font-size:12px}
+  .bar{height:4px;background:#eef1f5;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri)}
+  .qhead{display:flex;justify-content:space-between;color:var(--sub);font-size:13px;margin-bottom:8px}
+  .tag{font-style:normal;display:inline-block;border-radius:6px;padding:1px 7px;margin-right:8px;font-size:12px;color:#fff;background:#8a94a6;vertical-align:1px}
+  .tag.t1{background:#1a6dff}.tag.t2{background:#f08c00}.tag.t3{background:#0a9f5b}
+  .hint{margin-top:12px;font-size:13px;color:#8a6d3b;background:#fff8e6;border-radius:10px;padding:8px 12px}
+  .btn.wide{display:block;width:100%;margin-top:14px;padding:13px;font-size:16px}
+  .title{font-size:16px;line-height:1.8;word-break:break-word}
+  .title img,.opt img,.ana img{max-width:100%!important;height:auto!important;vertical-align:middle}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f7f9fc;border:1px solid #e9edf4;border-radius:12px;padding:12px;margin-top:10px;font-size:15px;color:var(--tx);line-height:1.7}
+  .opt .lab{flex:0 0 22px;height:22px;border-radius:50%;background:#dfe5ee;color:#5b6577;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .opt .cnt{flex:1;min-width:0;word-break:break-word}
+  .opt.sel{border-color:var(--pri)}
+  .opt.right{background:#eaf8f1;border-color:#9fdcbd}
+  .opt.right .lab{background:var(--ok);color:#fff}
+  .opt.wrong{background:#fdeeec;border-color:#f3b8b1}
+  .opt.wrong .lab{background:var(--bad);color:#fff}
+  .ana{margin-top:12px;background:#f2f7ff;border-radius:12px;padding:12px;font-size:14px;color:#33405a;display:none}
+  .ana b{color:var(--ok)}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1;padding:12px}
+  .star{background:none;border:0;font-size:20px;color:#c9ced8;padding:0 4px}
+  .star.on{color:#ffb020}
+  .empty{color:var(--sub);text-align:center;padding:40px 0}
+  .pill{display:inline-block;background:#eef2f8;color:#5b6577;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(29,33,41,.9);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <button class="btn" id="back" style="display:none">‹ 返回</button>
+  <h1 id="hTitle">珞研刷题</h1>
+  <button class="star" id="star" style="display:none">★</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"id": "mock-93086890", "name": "奕诚27单科卷-国网其他工学-计算机", "chapters": [{"k": "计算机", "n": "计算机（40 题）", "qs": [{"id": "28422", "t": "1", "q": "<p>针对大数据场景下模型过拟合问题，以下哪种方法不能有效缓解过拟合？（ ）<\/p>", "a": ["<p>增加训练样本数据量<\/p>", "<p>加入 L1、L2 正则化约束损失函数<\/p>", "<p>大幅增加神经网络隐藏层层数与神经元数量<\/p>", "<p>使用交叉验证划分数据集训练<\/p>", "", ""], "r": "C", "e": "【定位】第5章 信息科学前沿, 5.5 数据挖掘, 知识点4 模型拟合。\n【解析】选项A错，大数据扩充样本，减少噪声对模型的干扰，缓解过拟合；\n选项B错，正则化惩罚过大权重，限制模型复杂度，抑制过拟合；\n选项C对，增多网络层数、神经元会提升模型复杂度，加剧过拟合；\n选项D错，交叉验证避免单次划分数据带来的偶然性，评估并降低过拟合风险。", "l3": "计算机", "l4": "第5章"}, {"id": "28302", "t": "2", "q": "我国信息安全保护等级包括（ ）。", "a": ["自主保护", "指导保护", "特殊保护", "强制保护", "", ""], "r": "ABD", "e": "【定位】第4章 信息安全技术, 4.1 信息安全技术概述, 知识点1 信息安全和信息系统安全。\n【解析】选项 A：自主保护\n对应第一级信息系统（一般重要，如普通企业内部办公系统）：由系统运营者自主制定保护策略、实施保护措施，无需监管部门强制介入，仅需符合基本安全要求。\n定位：官方明确的基础保护方式，正确。\n选项 B：指导保护\n对应第二级信息系统（较重要，如地方政务部门非核心系统）：系统运营者自主实施保护，但监管部门（如网信、公安）会提供技术指导和安全建议，确保保护措施合规有效。\n定位：官方明确的保护方式，正确。\n选项 C：特殊保护\n我国等保制度中无 “特殊保护” 这一官方术语，易与 “专控保护”（对应第五级超重要系统，如涉及国家核心机密的系统）混淆，但 “专控保护” 是独立分类，且选项中 “特殊保护” 并非标准表述，排除。\n选项 D：强制保护\n对应第三级及以上信息系统（重要 / 极重要，如国家政务核心系统、金融交易系统）：系统运营者必须按法定要求实施保护（如强制备案、定期安全测评、接受监管检查），保护措施需通过官方审核，未达标将被责令整改。\n定位：官方明确的核心保护方式，正确。\n结论\n我国信息安全保护等级对应的官方保护方式中，选项 A（自主保护）、B（指导保护）、D（强制保护）均为明确分类，C（特殊保护）非标准术语，故正确答案为 ABD。", "l3": "计算机", "l4": "第4章"}, {"id": "28145", "t": "1", "q": "在因特网上，可以将一台计算机作为另一台主机的远程终端，此服务称为（　 　）。", "a": ["BBS", "E-mail", "Telnet", "FTP", "", ""], "r": "C", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点2 TCP/IP。\n【解析】Telnet是一种远程登录服务。", "l3": "计算机", "l4": "第3章"}, {"id": "28443", "t": "3", "q": "物联网设备不需要任何网络连接即可工作。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第5章 信息科学前沿, 5.2 物联网, 知识点1 物联网。\n【解析】物联网设备通常需要网络连接才能与其他设备或云平台交换数据，实现其功能。", "l3": "计算机", "l4": "第5章"}, {"id": "28160", "t": "1", "q": "<p>下列哪个IP地址属于C类地址？（ ）<\/p>", "a": ["<p>10.0.0.1<\/p>", "<p>172.16.0.1<\/p>", "<p>192.168.1.1<\/p>", "<p>224.0.0.1<\/p>", "", ""], "r": "C", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点2 TCP/IP。\n【解析】C类地址首位范围192-223。", "l3": "计算机", "l4": "第3章"}, {"id": "27452", "t": "1", "q": "下面概念中，属于面向对象程序设计方法的是（ ）。", "a": ["自顶向下", "逐步求精", "封装", "过程调用", "", ""], "r": "C", "e": "【定位】第2章 计算机软件基础, 2.3 高级程序的开发与执行, 知识点2 高级程序的开发。\n【解析】面向对象程序设计方法中常使用类、对象、封装、继承、多态来进行程序设计。自顶向下、逐步求精、过程调用属于结构化设计方法，因此正确答案为C。", "l3": "计算机", "l4": "第2章"}, {"id": "28389", "t": "1", "q": "Microsoft Azure属于云服务的（ ）。", "a": ["SaaS", "PaaS", "IaaS", "以上三项都不是", "", ""], "r": "B", "e": "【定位】第5章 信息科学前沿, 5.1 云计算, 知识点3 云计算发展及现状。\n【解析】Microsoft Azure是微软基于云计算的操作系统，是微软“软件和服务”技术的名称，其主要目标是为开发者提供一个平台，帮助开发可运行在云服务器、数据中心、Web和PC上的应用程序。因此，它属于云服务的PaaS。因此，正确答案为B。", "l3": "计算机", "l4": "第5章"}, {"id": "27426", "t": "3", "q": "只读存储器的英文名称是ROM，其英文原文是Read Only Memory。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "A", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点7 计算机硬件系统。\n【解析】明确只读存储器的标准英文名称及缩写对应关系：在计算机存储领域，“只读存储器” 的英文全称为 “Read Only Memory”，其英文缩写 “ROM” 正是由这三个单词的首字母（ReaD.Only、Memory）组合而成，这是国际通用的标准术语，无任何歧义。\n题干表述完全符合这一标准对应关系，因此说法正确，答案为 A。", "l3": "计算机", "l4": "第1章"}, {"id": "28371", "t": "1", "q": "（ ）是计算机模拟人类的智能活动，是探索和模拟人的感觉和思维过程的科学。", "a": ["机器人技术", "大数据技术", "物联网", "人工智能", "", ""], "r": "D", "e": "【定位】第5章 信息科学前沿, 5.4 人工智能, 知识点1 人工智能。\n【解析】人工智能是让机器能够模拟、延伸和扩展人的智能。", "l3": "计算机", "l4": "第5章"}, {"id": "28206", "t": "1", "q": "以下哪些属于系统的物理故障：（ ）。", "a": ["硬件故障与软件故障", "计算机病毒", "人为的失误", "网络故障和设备环境故障", "", ""], "r": "D", "e": "【定位】第4章 信息安全技术, 4.1 信息安全技术概述, 知识点2 威胁信息安全的因素。\n【解析】网络故障和设备环境故障属于物理故障。", "l3": "计算机", "l4": "第4章"}, {"id": "28083", "t": "1", "q": "世纪80年代，国际标准化组织颁布了（ ），以此促进了网络互联的发展。", "a": ["TCP/IP", "OSI/RM", "FTP", "SMTP", "", ""], "r": "B", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点3 计算机网络体系结构。\n【解析】国际标准化组织（ISO）颁布了OSI/RM（开放系统互联/参考模型），促进了网络互联的发展。", "l3": "计算机", "l4": "第3章"}, {"id": "28066", "t": "1", "q": "一台微型计算机要与局域网连接，必须安装的硬件是（ ）。", "a": ["集线器", "网关", "网卡", "路由器", "", ""], "r": "C", "e": "【定位】第3章 网络技术基础, 3.3 计算机网络的组成与应用, 知识点2 局域网技术。\n【解析】一台微型计算机要与局域网连接，需要使用网卡（全称：网络接口卡，也叫网络适配器）。", "l3": "计算机", "l4": "第3章"}, {"id": "28271", "t": "1", "q": "为确保学校局域网的信息安全，防止来自Internet的黑客入侵，应采用（ ）以实现一定的防范作用。", "a": ["网管软件", "邮件列表", "防火墙软件", "杀毒软件", "", ""], "r": "C", "e": "【定位】第4章 信息安全技术, 4.2 信息安全风险及防范, 知识点2 信息安全防范技术。\n【解析】安装防火墙软件可确保局域网的信息安全，防止来自Internet的黑客入侵。", "l3": "计算机", "l4": "第4章"}, {"id": "27402", "t": "2", "q": "下列关于计算机中信息编码说法正确的是（ ）。", "a": ["将汉字的区位码直接加上2020H就是国标码", "ASCII使用了8位二进制对西文字符进行编码", "将16进制国标码加上8080H就是机内码", "存储一个16*16点阵的汉字需要32个字节", "", ""], "r": "CD", "e": "【定位】第1章 计算机硬件基础, 1.3 数据在计算机内的表示与处理, 知识点2 计算机中常见的信息编码。\n【解析】选项 A：将汉字的区位码直接加上 2020H 就是国标码 → 错误\n错误点在于 “直接加” 忽略了区位码的进制转换，正确步骤为：\n区位码是 “区码 + 位码” 的十进制组合（如某汉字区位码为 1601，区码 16、位码 01 均为十进制）；\n需先将区码、位码分别转换为十六进制（如 16→10H，01→01H）；\n再将十六进制的区码、位码分别加 20H（合为 2020H），得到国标码（如 1001H + 2020H = 3021H）。\n直接用十进制区位码加十六进制 2020H，数值逻辑错误，因此 A 错误。\n选项 B：ASCII 使用了 8 位二进制对西文字符进行编码 → 错误\nASCII 码分两类：\n基本 ASCII 码（核心）：仅用 7 位二进制，可表示 128 个字符（0-127，涵盖字母、数字、符号），最高位固定为 0；\n扩展 ASCII 码：在 7 位基础上加 1 位最高位（可设为 1），用于表示更多特殊字符，但并非所有 ASCII 编码都依赖 8 位，且 “标准 ASCII” 的定义以 7 位为核心。\n选项 B 未区分 “基本” 与 “扩展”，表述不准确，因此 B 错误。\n选项 C：将 16 进制国标码加上 8080H 就是机内码 → 正确\n这是汉字编码的标准转换规则，核心目的是 “区分汉字与 ASCII 码”：\n国标码的高、低字节最高位均为 0（如国标码 3021H，二进制为 00110000 00100001），与 ASCII 码（最高位 0）无法区分；\n为解决冲突，将国标码的高、低字节分别加 80H（十六进制），合起来即加 8080H，得到机内码（如 3021H + 8080H = B0A1H，二进制为 10110000 10100001）；\n机内码最高位为 1，可与 ASCII 码明确区分，因此 C 正确。\n选项 D：存储一个 16*16 点阵的汉字需要 32 个字节 → 正确\n计算逻辑基于 “点阵像素与字节的换算”：\n16×16 点阵的汉字，总像素点 = 16 × 16 = 256 个；\n每个像素点用 1 位二进制表示（0 = 暗，1 = 亮），因此共需 256 位存储；\n因 1 字节 = 8 位，总字节数 = 256 位 ÷ 8 = 32 字节。\n计算结果完全正确，因此 D 正确。\n因此，正确选项是 CD。", "l3": "计算机", "l4": "第1章"}, {"id": "27527", "t": "1", "q": "<p>（其它工学）有以下程序输出结果是（ ）。<\/p>\n<p>int main() {<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;int a[5] = {1,2,3,4,5};<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;int *ptr = (int*)(&amp;a + 1);<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;printf(\"%d\", *(ptr - 1));<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;return 0;<\/p>\n<p>}<\/p>", "a": ["<p>1<\/p>", "<p>2<\/p>", "<p>5<\/p>", "<p>随机值<\/p>", "", ""], "r": "C", "e": "【定位】第2章 计算机软件基础, 2.5 C程序设计基础, 知识点7 指针。\n【解析】 &a是整个数组的地址，&a+1指向数组末尾之后，ptr-1指向前一个int，即a[4]=5。", "l3": "计算机", "l4": "第2章"}, {"id": "28353", "t": "1", "q": "微软于2008年10月推出的云计算操作系统是（ ）。", "a": ["Google App Engine", "Azure", "蓝云", "EC2", "", ""], "r": "B", "e": "【定位】第5章 信息科学前沿, 5.1 云计算, 知识点3 云计算发展及现状。\n【解析】微软于2008年10月推出的云计算操作系统是Windows Azure。", "l3": "计算机", "l4": "第5章"}, {"id": "28446", "t": "3", "q": "机器学习算法必须有数据标签才能运行。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第5章 信息科学前沿, 5.4 人工智能, 知识点1 人工智能。\n【解析】 虽然监督学习需要标签数据，但无监督学习和半监督学习可以处理无标签或部分有标签的数据集。", "l3": "计算机", "l4": "第5章"}, {"id": "28079", "t": "1", "q": "在网络互联中，传输层及其以上高层实现网络互联的设备是（ ）。", "a": ["中继器", "网桥", "网关", "路由器", "", ""], "r": "C", "e": "【定位】第3章 网络技术基础, 3.3 计算机网络的组成与应用, 知识点2 局域网技术。\n【解析】网关是传输层及其以上高层实现网络互联的设备。", "l3": "计算机", "l4": "第3章"}, {"id": "27438", "t": "1", "q": "计算机软件系统包括（ ）。", "a": ["操作系统和应用软件", "系统软件和应用软件", "编译系统和办公软件", "数据库管理系统和数据库", "", ""], "r": "B", "e": "【定位】第2章 计算机软件基础, 2.1 计算机软件的分类, 知识点1 软件的分类。\n【解析】软件系统可分为系统软件和应用软件两大类。", "l3": "计算机", "l4": "第2章"}, {"id": "27357", "t": "1", "q": "用8位原码表示整数-25，编码结果为（ ）。", "a": ["00011011", "11111001", "10011001", "11100110", "", ""], "r": "C", "e": "【定位】第1章 计算机硬件基础, 1.3 数据在计算机内的表示与处理, 知识点1 整数的计算机表示。\n【解析】对于负数，其原码的定义为：符号位为1，数值位是其真值绝对值的二进制表示。整数-25转换为二进制数为11001，用8位原码表示时，符号位取1，数值位为0011001，因此整个原码结果为：10011001。", "l3": "计算机", "l4": "第1章"}, {"id": "27331", "t": "1", "q": "<p>某CPU有16根地址线，其最大可寻址内存空间为（ ）。<\/p>", "a": ["<p>16KB<\/p>", "<p>32KB<\/p>", "<p>64KB<\/p>", "<p>128KB<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/KN9qasxiGdv4YSD1DkG8IUz12VssoRcOfdlH4ofs.png\" alt=\"\" width=\"1020\" height=\"225\"><\/p>", "l3": "计算机", "l4": "第1章"}, {"id": "27436", "t": "3", "q": "<p>逻辑或运算和二进制乘法运算结果相同。（ ）<\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "【定位】第1章 计算机硬件基础, 1.2 数制, 知识点2 计算机中数据的算数运算及逻辑运算。\n【解析】逻辑或（OR）：运算规则为1+0=1，1+1=1，0+0=0，只要有一个操作数为1，结果即为1。\n二进制乘法（实际指按位与 AND）：运算规则为1·0=0，1·1=1，0·0=0，必须两个操作数都为1，结果才为1。两者真值表完全不同（仅在输入都为1时结果相同），因此结果不相同，命题错误。", "l3": "计算机", "l4": "第1章"}, {"id": "28313", "t": "2", "q": "下列哪项不是国家秘密区别于其他秘密的关键（ ）。", "a": ["关系国家安全和利益", "依照法定程序确定", "在一定时间内保密", "只限一定范围的人员知悉", "", ""], "r": "BCD", "e": "【定位】第4章 信息安全技术, 4.5 信息安全相关法规, 知识点1 信息安全相关法规。\n【解析】选项 A：关系国家安全和利益\n关键区别性：这是国家秘密与其他所有秘密的根本差异。\n商业秘密仅关系 “企业经济利益”（如技术配方、客户数据），不涉及国家安全；\n个人隐私秘密仅关系 “个人权益”（如私人通讯、健康信息），与国家安全无关；\n只有国家秘密直接关联 “国家安全和利益”（如国防战略、军事部署、核心科技），一旦泄露可能危害国家主权、领土完整或公共安全。\n选项 B：依照法定程序确定\n非关键区别性：“法定程序” 并非国家秘密独有。\n商业秘密的确定需遵循企业内部程序（如保密制度、员工保密协议），或《反不正当竞争法》等法律程序；\n选项 C：在一定时间内保密\n非关键区别性：“时间性” 是所有秘密的共性，而非国家秘密独有。\n国家秘密有明确保密期限（如绝密级不超过 30 年），到期后解密；\n选项 D：只限一定范围的人员知悉\n非关键区别性：“限制知悉范围” 是 “秘密” 的基本属性（无范围限制则不成为 “秘密”），并非国家秘密独有。\n商业秘密只限企业核心员工（如技术研发人员、高管）知悉；\n因此，国家秘密区别于其他秘密的唯一关键是 “关系国家安全和利益”，而B.C.D 是所有秘密的共性特征，不是关键区别。", "l3": "计算机", "l4": "第4章"}, {"id": "28134", "t": "1", "q": "用IE浏览器浏览网页，在地址栏中输入网址时，通常可以省略的是（ ）。", "a": ["http://", "ftp://", "mailto://", "news://", "", ""], "r": "A", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点2 TCP/IP。\n【解析】在地址栏中输入网址时，通常可以省略的是http协议格式（http://），网页数据传输时默认使用超文本传输协议进行约束。", "l3": "计算机", "l4": "第3章"}, {"id": "28052", "t": "1", "q": "以下不属于计算机网络的主要功能的是（ ）。", "a": ["专家系统", "数据通信", "分布式信息处理", "资源共享", "", ""], "r": "A", "e": "【定位】第3章 网络技术基础, 3.3 计算机网络的组成与应用, 知识点1 计算机网络系统的组成与功能。\n【解析】计算机网络的主要功能有数据通信、资源共享、以及分布式信息处理等，而专家系统是一个智能计算机程序系统，它应用人工智能技术和计算机技术，根据某领域一个或多个专家提供的知识和经验，进行推理和判断，模拟人类专家的决策过程，以便解决那些需要人类专家处理的复杂问题，因此，不属于计算机网络的主要功能。正确答案为A。", "l3": "计算机", "l4": "第3章"}, {"id": "28098", "t": "1", "q": "计算机网络是（ ）。", "a": ["通信技术和自动化技术的结合", "计算机技术和信息技术的结合通信技术的结合", "计算机技术和电缆等传输技术的结合", "计算机技术和通信技术的结合", "", ""], "r": "D", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点1 计算机网络协议。\n【解析】计算机网络是计算机技术和通信技术的结合。正确答案为D。", "l3": "计算机", "l4": "第3章"}, {"id": "27300", "t": "1", "q": "一个采用标准ASCII码编码的字符存放在计算机中，使用（ ）。", "a": ["7 bits", "8 bits", "16 bits", "6 bits", "", ""], "r": "B", "e": "【定位】第1章 计算机硬件基础, 1.3 数据在计算机内的表示与处理, 知识点2 计算机中常见的信息编码。\n【解析】ASCII字符在计算机中采用1个字节（即8个二进制位）的编码结果进行存储，因此，正确答案为B。", "l3": "计算机", "l4": "第1章"}, {"id": "27404", "t": "2", "q": "下列数字中，可能是八进制数的是（ ）。", "a": ["456", "457", "687", "11101", "", ""], "r": "ABD", "e": "【定位】第1章 计算机硬件基础, 1.2 数制, 知识点1 进位计数制。\n【解析】选项 A：456 → 可能是八进制数\n检查每一位数字：4、5、6 均在 “0~7” 的范围内，无任何违规数码（8 或 9），符合八进制数的位取值要求，因此 A 可能是八进制数。\n选项 B：457 → 可能是八进制数\n检查每一位数字：4、5、7 均属于 “0~7” 的合法范围，未出现 8 或 9，完全符合八进制数的规则，因此 B 可能是八进制数。\n选项 C：687 → 不可能是八进制数\n该数字的第二位为 “8”，而八进制数的每一位绝对不允许出现 8（或 9）—— 八进制的最大单个数码是 7（逢 8 则需向高位进 1，如 “8” 在八进制中需表示为 “10”）。因此 C 违反八进制规则，不可能是八进制数。\n选项 D：11101 → 可能是八进制数\n检查每一位数字：1、1、1、0、1 均在 “0~7” 的范围内，无任何违规数码。需注意：虽然该数字仅含 0 和 1（看起来类似二进制数），但 “二进制数的数码（0、1）完全包含在八进制数的合法数码（0~7）中”，因此二进制数的表现形式也可能是八进制数（例如八进制数 “10” 对应十进制 “8”，二进制数 “10” 对应十进制 “2”，但两者的数码均合规）。因此 D 可能是八进制数。\n综上，可能是八进制数的选项是 ABD。", "l3": "计算机", "l4": "第1章"}, {"id": "27315", "t": "1", "q": "关于B.KB.MB和GB之间的数据换算，正确的是（ ）。", "a": ["10B=80字节", "1KB=1024Bytes", "1MB=10000B", "1GB=1024KB", "", ""], "r": "B", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点7 计算机硬件系统。\n【解析】1B=1字节，因此，10B=10字节，1MB=1024KB=1024×1024B，1GB=1024MB。因此，正确答案为B。", "l3": "计算机", "l4": "第1章"}, {"id": "28109", "t": "1", "q": "以下媒体传输技术中属于无线媒体传输技术的是（ ）。", "a": ["光纤传输技术", "双绞传输技术", "同轴电缆传输技术", "红外线传输技术", "", ""], "r": "D", "e": "【定位】第3章 网络技术基础, 3.2 计算机网络的分类, 知识点1 计算机网络的分类。\n【解析】A.B.C选项属于有线传输介质。红外线属于无线传输。因此，正确答案为D。", "l3": "计算机", "l4": "第3章"}, {"id": "27308", "t": "1", "q": "下列（ ）是计算机的主存储器。", "a": ["内存条", "硬盘", "光盘", "磁带", "", ""], "r": "A", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点7 计算机硬件系统。\n【解析】内存条即DRAM，是计算机的主存。硬盘、光盘和磁带都是辅助存储器，也称为“外存”。", "l3": "计算机", "l4": "第1章"}, {"id": "28288", "t": "1", "q": "防火墙能够是（ ）。", "a": ["防止火灾在建筑物中蔓延", "查杀计算机病毒", "保护内网的数据和资源的安全", "提高网络运行效率", "", ""], "r": "C", "e": "【定位】第4章 信息安全技术, 4.2 信息安全风险及防范, 知识点2 信息安全防范技术。\n【解析】防火墙能够对流经它的网络通信进行扫描，过滤掉一些攻击，以免其在目标计算机上被执行；防火墙还可以关闭不使用的端口，还能禁止特定端口的流出通信，封锁特洛伊木马；可以禁止来自特殊站点的访问，从而防止来自不明入侵者的所有通信。正确答案为C。", "l3": "计算机", "l4": "第4章"}, {"id": "28105", "t": "1", "q": "以下不属于网络操作系统的软件是（ ）。", "a": ["Netware", "WWW", "Linux", "Unix", "", ""], "r": "B", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点1 计算机网络协议。\n【解析】Netware、Linux、Unix均为网络操作系统。WWW为万维网，是因特网提供的主要服务之一。因此，正确答案为B。", "l3": "计算机", "l4": "第3章"}, {"id": "28184", "t": "3", "q": "HTML是指超文本标记语言。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "A", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点2 TCP/IP。\n【解析】明确 HTML 的英文全称与中文译名的对应关系：\nHTML 的英文全称为 HyperText Markup Language，其中：\nHyperText 对应 “超文本”（指包含链接、多媒体等非纯文本元素的文本形式）；\nMarkup Language 对应 “标记语言”（通过标签标记内容结构，供浏览器解析渲染）。\n其标准中文译名就是 “超文本标记语言”，是用于构建网页结构的核心语言，表述完全准确。\n综上，该说法正确，答案为 A。", "l3": "计算机", "l4": "第3章"}, {"id": "27454", "t": "1", "q": "下列哪个不是结构化程序设计的原则？（ ）。", "a": ["模块化", "自底向上", "模块单入口单出口", "逐步求精", "", ""], "r": "B", "e": "【定位】第2章 计算机软件基础, 2.3 高级程序的开发与执行, 知识点2 高级程序的开发。\n【解析】结构化程序设计的的基本原则包括：采用顺序、选择、循环三种控制结构；模块化设计，模块单入口单出口；自顶向下、逐步求精；限制使用goto语句。A.C.D均为结构化设计原则，因此，正确答案为B。", "l3": "计算机", "l4": "第2章"}, {"id": "28124", "t": "1", "q": "计算机网络从网络覆盖范围上可划分为（ ）。", "a": ["服务器和客户机", "局域网、城域网和广域网", "通信子网和资源子网", "树型网和星型网", "", ""], "r": "B", "e": "【定位】第3章 网络技术基础, 3.2 计算机网络的分类, 知识点1 计算机网络的分类。\n【解析】按网络覆盖地理范围，计算机网络可分为：局域网、城域网和广域网。因此，正确答案为B。", "l3": "计算机", "l4": "第3章"}, {"id": "28064", "t": "1", "q": "Internet是（ ）类型的网络。", "a": ["局域网", "城域网", "广域网", "企业网", "", ""], "r": "C", "e": "【定位】第3章 网络技术基础, 3.2 计算机网络的分类, 知识点1 计算机网络的分类。\n【解析】Internet从网络覆盖地理范围上分类，属于广域网（WAN）。", "l3": "计算机", "l4": "第3章"}, {"id": "28175", "t": "2", "q": "下列常用网络设备和OSI体系结构层次对应关系正确的有（ ）。", "a": ["交换机-数据链路层", "路由器-传输层", "modem-物理层", "网关-网络层", "", ""], "r": "AC", "e": "【定位】第3章 网络技术基础, 3.3 计算机网络的组成与应用, 知识点2 局域网技术\n【解析】选项 A：交换机 - 数据链路层\n交换机的核心功能是根据 MAC 地址转发数据帧，通过维护 MAC 地址表实现局域网内设备的直接通信，处理的是 “帧” 级别的数据单元，对应 OSI 的数据链路层。A 正确。\n选项 B：路由器 - 传输层\n路由器的核心功能是根据 IP 地址进行跨网络路由选择，处理的是 “数据包” 级别的数据单元（包含 IP 地址），对应 OSI 的网络层，而非传输层。B 错误。\n选项 C：modem - 物理层\nModem（调制解调器）的核心功能是实现数字信号与模拟信号的转换（如将电脑的数字信号转为电话线可传输的模拟信号），仅处理物理层的 “比特流” 信号，对应 OSI 的物理层。C 正确。\n选项 D：网关 - 网络层\n网关的核心功能是连接不同体系结构的网络（如 TCP/IP 与其他协议网络），需处理高层协议转换（通常涉及应用层及以上），而非仅工作在网络层。D 错误。\n综上，正确答案为 AC。", "l3": "计算机", "l4": "第3章"}, {"id": "28418", "t": "1", "q": "<p>以下哪个是机器学习中监督学习和无监督学习的区别？（ ）<\/p>", "a": ["<p>是否有标签数据<\/p>", "<p>是否需要大量数据<\/p>", "<p>是否需要模型<\/p>", "<p>是否使用神经网络<\/p>", "", ""], "r": "A", "e": "【定位】第5章 信息科学前沿, 5.6 机器学习, 知识点1 机器学习。\n【解析】监督学习使用标记数据，无监督学习无标记。", "l3": "计算机", "l4": "第5章"}, {"id": "27469", "t": "1", "q": "计算机编程语言经历了（ ）三个发展阶段。", "a": ["机器语言、BASIC语言和C语言", "二进制代码语言、机器语言和FORTRAN语言", "机器语言、汇编语言和高级语言", "机器语言、汇编语言和C++语言", "", ""], "r": "C", "e": "【定位】第2章 计算机软件基础, 2.3 高级程序的开发与执行, 知识点1 程序和程序设计语言。\n【解析】计算机编程语言的发展过程先后分为：机器语言、汇编语言、高级语言。", "l3": "计算机", "l4": "第2章"}]}]};
+
+const KEY = 'ly:' + DATA.id;
+const store = {
+  load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {} } catch(e){ return {} } },
+  save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)) } catch(e){} }
+};
+let S = store.load();
+S.wrong = S.wrong || {}; S.collect = S.collect || {}; S.pos = S.pos || {};
+S.ans = S.ans || {}; S.stats = S.stats || {r:0,w:0};
+store.save(S);
+
+const $ = id => document.getElementById(id);
+const app = $('app'), hTitle = $('hTitle'), backBtn = $('back'), starBtn = $('star');
+let sess = null;   // {list, idx, mode, key}
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1400); }
+function allQ(){ return DATA.chapters.flatMap(c=>c.qs); }
+function chapterWrongCount(c){ return c.qs.filter(q=>S.wrong[q.id]).length; }
+function chapterDone(c){ const p=S.pos[c.k]; return p==null?0:Math.min(p,c.qs.length); }
+function esc(s){ return (s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function renderHome(){
+  sess = null; backBtn.style.display='none'; starBtn.style.display='none';
+  hTitle.textContent = DATA.name;
+  const total = allQ().length, wrongN = Object.keys(S.wrong).length, colN = Object.keys(S.collect).length;
+  app.innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${total}</b><span>总题量</span></div>
+      <div class="stat"><b style="color:var(--ok)">${S.stats.r}</b><span>答对</span></div>
+      <div class="stat"><b style="color:var(--bad)">${S.stats.w}</b><span>答错</span></div>
+      <div class="stat"><b style="color:#ffb020">${wrongN}</b><span>错题</span></div>
+    </div>
+    <div class="modes">
+      <button onclick="startAll()">顺序练习</button>
+      <button onclick="startRandom()">随机练习</button>
+      <button class="warn" onclick="startWrong()">错题本<em class="pill">${wrongN}</em></button>
+      <button onclick="startCollect()">收藏<em class="pill">${colN}</em></button>
+    </div>
+    <div class="card">
+      ${DATA.chapters.map((c,i)=>{
+        const done = chapterDone(c), pct = c.qs.length? Math.round(done/c.qs.length*100):0;
+        return `<div class="ch" onclick="startChapter(${i})">
+          <div class="t"><b>${esc(c.n)}</b><span>${c.qs.length} 题 · 错题 ${chapterWrongCount(c)} · 已做 ${done}</span>
+          <div class="bar"><i style="width:${pct}%"></i></div></div>
+          <div style="color:var(--sub)">›</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function begin(list, mode, key){
+  if(!list.length){ toast('这里还没有题目'); return; }
+  sess = {list, idx:0, mode, key, done:{}};
+  backBtn.style.display=''; starBtn.style.display='';
+  showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
+}
+
+function startChapter(i){
+  const c = DATA.chapters[i];
+  const pos = S.pos[c.k] || 0;
+  begin(c.qs.slice(), 'chapter', c.k);
+  sess.idx = Math.min(pos, c.qs.length-1);
+  showQ();
+}
+function startAll(){ begin(allQ(), 'all', 'ALL'); }
+function startRandom(){ begin(allQ().sort(()=>Math.random()-0.5), 'random', 'RND'); }
+function startWrong(){
+  const list = allQ().filter(q=>S.wrong[q.id]);
+  list.sort((a,b)=>(S.wrong[b.id].n||0)-(S.wrong[a.id].n||0));
+  begin(list, 'wrong', 'WRONG');
+}
+function startCollect(){ begin(allQ().filter(q=>S.collect[q.id]), 'collect', 'COL'); }
+
+const TYPE_NAME = {1:'单选', 2:'多选', 3:'判断'};
+function typeOf(q){ return TYPE_NAME[q.t] || '单选'; }
+function isMulti(q){ return q.t === 2; }
+let draft = {};          // 多选题暂存：qid -> [选项字母]
+
+function sameSet(a, b){
+  const x = (a||'').split('').filter(Boolean).sort().join('');
+  const y = (b||'').split('').filter(Boolean).sort().join('');
+  return !!x && x === y;
+}
+
+function grade(q, answer){
+  const ok = sameSet(answer, q.r);
+  S.ans[q.id] = {a: answer, ok};
+  let rec = S.wrong[q.id];
+  if(ok){
+    S.stats.r++;
+    if(rec){ rec.s = (rec.s||0)+1; if(rec.s >= 2){ delete S.wrong[q.id]; toast('已掌握，移出错题本'); } }
+  } else {
+    S.stats.w++;
+    if(!rec) rec = S.wrong[q.id] = {n:0,s:0};
+    rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
+  }
+  delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
+  store.save(S);
+  showQ();
+}
+
+function showQ(){
+  const q = sess.list[sess.idx];
+  if(!q){ renderHome(); return; }
+  if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
+  const ans = S.ans[q.id];
+  const answered = isAnswered();
+  const multi = isMulti(q);
+  const sel = draft[q.id] || [];
+  const star = !!S.collect[q.id];
+  starBtn.classList.toggle('on', star);
+  hTitle.textContent = `${DATA.name} · ${sess.idx+1}/${sess.list.length}`;
+
+  const opts = q.a.map((a, i)=>{
+    const L = 'ABCDEF'[i];
+    if(!a || !a.replace(/<[^>]+>/g,'').trim() && !/img/i.test(a)) return '';
+    let cls = 'opt';
+    if(answered){
+      if((q.r||'').includes(L)) cls += ' right';
+      else if((ans.a||'').includes(L)) cls += ' wrong';
+    } else if(multi && sel.includes(L)) cls += ' sel';
+    return `<button class="${cls}" onclick="pick('${L}')">
+      <span class="lab">${q.ap[i] ? '' : L}</span>
+      <span class="cnt">${a}</span>
+    </button>`;
+  }).join('');
+
+  const hint = multi && !answered
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead"><span><em class="tag t${q.t}">${typeOf(q)}</em>${esc(q.l4 || q.l3)}</span></div>
+      <div class="title">${q.q}</div>
+      ${opts}
+      ${hint}
+      <div class="ana" id="ana" style="${answered?'display:block':''}">
+        <div><b>正确答案：${q.r || '—'}</b>${answered?`　<span style="color:${ans.ok?'var(--ok)':'var(--bad)'}">我的答案：${ans.a || '—'}</span>`:''}</div>
+        ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
+      </div>
+      ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
+      <div class="nav">
+        <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
+        <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
+      </div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function pick(L){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  if(isMulti(q)){
+    const cur = (draft[q.id] || []).slice();
+    const i = cur.indexOf(L);
+    if(i >= 0) cur.splice(i,1); else cur.push(L);
+    draft[q.id] = cur.sort();
+    showQ();
+    return;
+  }
+  grade(q, L);
+}
+
+function submitMulti(){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  const sel = (draft[q.id] || []).slice().sort().join('');
+  if(!sel){ toast('先选至少一个选项'); return; }
+  grade(q, sel);
+}
+function prevQ(){ if(sess.idx>0){ sess.idx--; showQ(); } }
+function nextQ(){
+  if(sess.idx < sess.list.length-1){ sess.idx++; showQ(); }
+  else { toast('这一组做完了'); renderHome(); }
+}
+function toggleStar(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  if(S.collect[q.id]) delete S.collect[q.id]; else S.collect[q.id] = true;
+  store.save(S); showQ();
+}
+
+backBtn.onclick = renderHome;
+starBtn.onclick = toggleStar;
+
+/* 支持 ?chapter=0 直接进章节 */
+const m = location.search.match(/chapter=(\d+)/);
+if(m) startChapter(+m[1]); else renderHome();
+</script>
+</body>
+</html>
