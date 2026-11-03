@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>珞研刷题</title>
+<style>
+  :root{--bg:#f5f6f8;--card:#fff;--pri:#1a6dff;--ok:#0a9f5b;--bad:#e0483c;--tx:#1d2129;--sub:#86909c}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid #e9ecf1;padding:10px 14px;display:flex;align-items:center;gap:10px}
+  header h1{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .btn{border:0;background:#eef2f8;color:#2b3648;border-radius:10px;padding:8px 12px;font-size:14px}
+  .btn.primary{background:var(--pri);color:#fff}
+  main{padding:12px;max-width:820px;margin:0 auto}
+  .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .stats{display:flex;gap:8px;margin-bottom:12px}
+  .stat{flex:1;background:#fff;border-radius:12px;padding:10px 12px;text-align:center}
+  .stat b{display:block;font-size:20px}
+  .stat span{color:var(--sub);font-size:12px}
+  .modes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .modes button{padding:12px 6px;border-radius:12px;border:0;background:#fff;font-size:14px;color:#2b3648}
+  .modes button.warn{color:var(--bad)}
+  .ch{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+  .ch:last-child{border-bottom:0}
+  .ch .t{flex:1;min-width:0}
+  .ch .t b{font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ch .t span{color:var(--sub);font-size:12px}
+  .bar{height:4px;background:#eef1f5;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri)}
+  .qhead{display:flex;justify-content:space-between;color:var(--sub);font-size:13px;margin-bottom:8px}
+  .tag{font-style:normal;display:inline-block;border-radius:6px;padding:1px 7px;margin-right:8px;font-size:12px;color:#fff;background:#8a94a6;vertical-align:1px}
+  .tag.t1{background:#1a6dff}.tag.t2{background:#f08c00}.tag.t3{background:#0a9f5b}
+  .hint{margin-top:12px;font-size:13px;color:#8a6d3b;background:#fff8e6;border-radius:10px;padding:8px 12px}
+  .btn.wide{display:block;width:100%;margin-top:14px;padding:13px;font-size:16px}
+  .title{font-size:16px;line-height:1.8;word-break:break-word}
+  .title img,.opt img,.ana img{max-width:100%!important;height:auto!important;vertical-align:middle}
+  .opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#f7f9fc;border:1px solid #e9edf4;border-radius:12px;padding:12px;margin-top:10px;font-size:15px;color:var(--tx);line-height:1.7}
+  .opt .lab{flex:0 0 22px;height:22px;border-radius:50%;background:#dfe5ee;color:#5b6577;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .opt .cnt{flex:1;min-width:0;word-break:break-word}
+  .opt.sel{border-color:var(--pri)}
+  .opt.right{background:#eaf8f1;border-color:#9fdcbd}
+  .opt.right .lab{background:var(--ok);color:#fff}
+  .opt.wrong{background:#fdeeec;border-color:#f3b8b1}
+  .opt.wrong .lab{background:var(--bad);color:#fff}
+  .ana{margin-top:12px;background:#f2f7ff;border-radius:12px;padding:12px;font-size:14px;color:#33405a;display:none}
+  .ana b{color:var(--ok)}
+  .nav{display:flex;gap:10px;margin-top:14px}
+  .nav .btn{flex:1;padding:12px}
+  .star{background:none;border:0;font-size:20px;color:#c9ced8;padding:0 4px}
+  .star.on{color:#ffb020}
+  .empty{color:var(--sub);text-align:center;padding:40px 0}
+  .pill{display:inline-block;background:#eef2f8;color:#5b6577;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:rgba(29,33,41,.9);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <button class="btn" id="back" style="display:none">‹ 返回</button>
+  <h1 id="hTitle">珞研刷题</h1>
+  <button class="star" id="star" style="display:none">★</button>
+</header>
+<main id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = {"id": "mock-16491200", "name": "奕诚27模拟卷-国网其他工学-第2套", "chapters": [{"k": "电力系统", "n": "电力系统（22 题）", "qs": [{"id": "34642", "t": "2", "q": "利用多断口灭弧时，其优点有（ ）。", "a": ["<p>把电弧分割成很多小电弧段<\/p>", "<p>加速了弧隙电阻的增大<\/p>", "<p>增大介质强度的恢复速度<\/p>", "<p>增大弧隙的恢复电压<\/p>", "", ""], "r": "ABC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/RjJGABObVlZOzBx2LlNdn9H4nJElLacW8REMobgK.png\"><\/p>", "l3": "电力系统", "l4": "第4章"}, {"id": "34663", "t": "2", "q": "下列选项中属于二次设备测量表计的是（ ）。", "a": ["电流表", "电压表", "功率表", "频率表", "", ""], "r": "ABCD", "e": "【定位】第4章，第3节，知识点2：电气二次设备\n【解析】测量表计用来监视、测量电路的电流、电压、功率、电能及设备的温度等，如电流表、电压表、功率表、电能表、频率表、温度表等，故选ABCD。", "l3": "电力系统", "l4": "第4章"}, {"id": "34709", "t": "1", "q": "电力系统中因负荷功率超过电气设备的额定上限造成的电流升高属于（ ）。", "a": ["正常运行状态", "不正常运行状态", "短路状态", "故障状态", "", ""], "r": "B", "e": "【定位】第5章，第1节，知识点2：电力系统的特点及运行状态的分类\n【解析】电力系统中因负荷潮流超过电气设备的额定上限造成的电流升高属于过负荷情况，而过负荷属于不正常工作状态，不是正常工作状态，也不算故障状态，故选B。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "35653", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/x61QFrMO4OH5d62qmXvuIhhY7f7p3ztgTJzuenDE.png\"><\/p>", "a": ["<p>10kV<\/p>", "<p>10.5kV<\/p>", "<p>11kV<\/p>", "<p>10.75kV<\/p>", "", ""], "r": "B", "e": "【定位】第1章，第2节，知识点2：电力系统额定电压的规定\n【解析】发电机有直配线，额定电压为线路额定电压的105%，即10.5kV。", "l3": "电力系统", "l4": "第1章"}, {"id": "34745", "t": "1", "q": "根据电压和电流之间的相位差在正常运行和短路故障时的差异可以构成（ ）。", "a": ["<p>功率方向保护<\/p>", "<p>纵差保护<\/p>", "<p>序分量保护<\/p>", "<p>距离保护<\/p>", "", ""], "r": "A", "e": "【定位】第5章，第1节，知识点3：电网保护基本原理\n【解析】根据电压和电流之间的相位差在正常运行和短路故障时的差异可以构成功率方向保护，故选A。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "35796", "t": "3", "q": "35kV及以上电压等级允许的偏移范围为电压额定值的-5%-+5%。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p>【定位】第1章，第3节，知识点4：衡量电能质量的技术指标及要求&nbsp;<\/p>\n<p>【解析】根据我国电能质量相关标准规定，35kV及以上电压供电：电压正、负偏差绝对值之和不超过标称电压的10%。（例如+5%与-5％组合，或+8%与-2%组合等），因此题干表述不正确，答案选B。<\/p>", "l3": "电力系统", "l4": "第1章"}, {"id": "35850", "t": "1", "q": "<p>低压供电网络的电压是（ &nbsp; &nbsp; ）。<\/p>", "a": ["<p>3kV<\/p>", "<p>6kV<\/p>", "<p>10kV<\/p>", "<p>0.4kV　<\/p>", "", ""], "r": "D", "e": "<p>【定位】第1章，第2节，知识点3：不同电压等级的适用范围<br>【解析】电力系统中，0.4kV（三相380V、单相220V）属于低压供电电压，直接供给居民、各类民用及小型工商业终端用户使用；3kV、6kV、10kV均属于高压配电电压，用于变电站之间的电能输送分配，不属于低压供电网络，因此本题选D。<\/p>", "l3": "电力系统", "l4": "第1章"}, {"id": "35647", "t": "1", "q": "电力系统是由（ ）环节组成。", "a": ["发电-输电-供电（配电）", "发电-变电-输电-变电", "发电-变电-输电", "发电-变电-输电-变电（配电）-用电", "", ""], "r": "D", "e": "【定位】第1章，第1节，知识点1：电力系统组成及各元件的作用\n【解析】电力系统由生产（发电）、变换（变电）、输送（输电）、分配（配电）、消费电能（用电）的发电机、变压器、电力线路、各种用电设备组成统一整体。D选项按发电到用电，完整地描述了电力系统的组成部分。ABC选项均不完整，故选D。", "l3": "电力系统", "l4": "第1章"}, {"id": "34599", "t": "1", "q": "以下不是核电厂的特点是（ ）。", "a": ["节省煤", "可建在地下或山上", "寿命长", "投资小", "", ""], "r": "D", "e": "【定位】第4章，第1节，知识点5：核能发电厂\n【解析】核电厂的特点：（1）运行安全稳定；（2）节省煤、石油和天然气；（3）节省燃料的运输费；（4）反应堆不需要空气助燃，可建在地下水下和高山顶上；（5）对环境影响小，无温室效应；（6）寿期长；（7）建设投资比火电厂和水电站大。", "l3": "电力系统", "l4": "第4章"}, {"id": "34551", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/SynjgsY9xe32ouhf9eGm1DE6VO9otxHlC7p3NanW.png\"><\/p>", "a": ["<p>8.75kW、7kW<\/p>", "<p>7kW、8.75kW<\/p>", "<p>7kW、35kW<\/p>", "<p>35kW、7kW<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/26i91UEnxfEs1nzQ11uc9kTV5RRqFF8F81U14m92.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34713", "t": "1", "q": "快速切除线路与母线的短路故障，是提高电力系统的（ ）的最重要的手段。", "a": ["暂态稳定", "静态稳定", "动态稳定", "热稳定", "", ""], "r": "A", "e": "【定位】第5章，第1节，知识点2：电力系统的特点及运行状态的分类\n【解析】线路与母线的短路故障属于大扰动，影响的是暂态稳定，因此通过继保快速切除大扰动故障，削减扰动存在时间，加速系统恢复到稳态，提高的是暂态稳定性，故选A，不选B。静态稳定性又称小干扰稳定性，如负荷波动属于小干扰，暂态稳定性又称大干扰稳定性，如短路属于大干扰。动态稳定是指系统受到大小干扰1~2个周波后系统不持续振荡或没有出现不收敛的发散振荡，故不选C。热稳定，短路后电气设备的耐热水平，故不选D。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "34444", "t": "1", "q": "有功功率流过电抗时，（ ）。", "a": ["<p>会产生有功损耗<\/p>", "<p>会产生无功损耗<\/p>", "<p>既会产生有功损耗，也会产生无功损耗<\/p>", "<p>不会产生无功损耗<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/mVwmAw9LdfrfHWSCMNI4urEZbVPwyyoO4LYwR4FT.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34827", "t": "1", "q": "新型电力系统以（ ）为主体，应用了高比例电力电子设备具有清洁低碳等特点。", "a": ["传统能源", "化石能源", "新能源", "核能资源", "", ""], "r": "C", "e": "【定位】第6章，第1节，知识点4：新型电力系统的特征。\n【解析】新型电力系统以新能源为主体，这是实现双碳目标的关键。", "l3": "电力系统", "l4": "第6章"}, {"id": "34452", "t": "1", "q": "关于输电线路导纳支路的无功损耗，下面描述错误的是（ ）。", "a": ["<p>与传输功率大小和性质无关<\/p>", "<p>为负值<\/p>", "<p>与电压成正比<\/p>", "<p>与电压平方成正比<\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/29Zo1nMNYLcP3OfVdh4tbrt8wwVTaH0OTLhXqkRG.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "34470", "t": "1", "q": "关于变压器的功率损耗，下面叙述正确的是（ ）。", "a": ["<p>阻抗支路的无功损耗和有功损耗与变压器负载率的平方成正比<\/p>", "<p>阻抗支路的无功损耗和有功损耗与变压器负载率成正比<\/p>", "<p>导纳支路的有功损耗和无功损耗与变压器负载率平方成正比<\/p>", "<p>导纳支路的有功损耗和无功损耗与变压器负载率成正比<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260727/8iKpVUn8A5XU6jTb0dFnEMWSPQ8IQFVdlMxQXkHQ.png\"><\/p>", "l3": "电力系统", "l4": "第3章"}, {"id": "33782", "t": "1", "q": "35kV架空输电线路导线截面增大时，关于线路参数变化，下面错误的是（ ）。", "a": ["<p>电阻减小<\/p>", "<p>电抗减小<\/p>", "<p>电纳增大<\/p>", "<p>电导减小<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/boZXAaz2DvXFNDnIvxpVkj8Ju81NuWjoD8rDKzXc.png\"><\/p>", "l3": "电力系统", "l4": "第2章"}, {"id": "34750", "t": "1", "q": "继电保护按照测量值和整定值的关系可以分为过量保护和欠量保护，下列保护中属于过量保护的是（ ）。", "a": ["<p>电流保护<\/p>", "<p>低电压保护<\/p>", "<p>距离保护<\/p>", "<p>工频分量距离保护<\/p>", "", ""], "r": "A", "e": "【定位】第5章，第1节，知识点3：电网保护基本原理\n【解析】过量保护是指测量值大于等于整定值时动作的保护，电流保护属于过量保护，故选A。", "l3": "电力系统", "l4": "第5章-考纲删除"}, {"id": "33774", "t": "1", "q": "35kV架空输电线路绝缘子串由3片绝缘子片串联组成，同型号的绝缘子用于220kV架空输电线路时绝缘子串中绝缘子片数应不少于（ ）。", "a": ["<p>18片<\/p>", "<p>17片<\/p>", "<p>16片<\/p>", "<p>13片<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/NxHiFdzS007294YpUBvBb23N0OLVcGuW1UMKlnFW.png\"><\/p>", "l3": "电力系统", "l4": "第2章"}, {"id": "35739", "t": "2", "q": "根据用户对供电可靠性的要求，电能分配时对供电负荷进行分级管理，（ ）不属于一级负荷。", "a": ["医院手术室", "2022冬奥会场馆用电", "三线城市地铁", "乡镇重点高中", "", ""], "r": "CD", "e": "【定位】第1章，第3节，知识点3：负荷分类及各类负荷对供电可靠性的要求\n【解析】乡镇重点高中停电后不会造成人身伤亡和关键设备造成难以修复的损害等一级负荷的分类依据，三线城市地铁一般属于二级负荷。A和B是典型的一级负荷。", "l3": "电力系统", "l4": "第1章"}, {"id": "35768", "t": "3", "q": "保证供电可靠性就是在任何情况下都不间断对用户的供电。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第1章，第3节，知识点2：电力系统运行的基本要求\n【解析】第三级负荷可以停电，题干说法太绝对。", "l3": "电力系统", "l4": "第1章"}, {"id": "35665", "t": "1", "q": "下列变比的变压器中，属于升压变压器的是（ ）。", "a": ["<p>500/121kV<\/p>", "<p>242/121/22kV<\/p>", "<p>110/10.5kV<\/p>", "<p>220/121/38.5kV<\/p>", "", ""], "r": "B", "e": "【定位】第1章，第2节，知识点1：电气设备的额定电压和额定频率\n【解析】选项A：若为升压变压器，则两边的线路额定电压应为110kV升到500kV，根据变压器额定电压的规定，一次侧低压侧额定电压为110kV，二次侧高压侧额定电压为550kV，故选型A并不是升压变压器；选项B中的22kV为国家标准规定发电机额定电压，若为升压变的话，则中压侧电压应为线路额定电压的1.1倍即121kV，高压侧电压同样也为线路额定电压的1.1倍即242kV，故选项B为正确答案；选项C：同上分析，由10kV线路电压升高到110kV，一次侧连接的肯定是发电机，则应等于发电机额定电压10.5kV，二次侧应比110kV电压高10%为121kV，故选项C错误；选项D：同上分析可知应为降压变压器，由高压线路220kV降低到中压110kV和低压35kV，一次侧等于220kV，中压和低压侧分别比线路电压高10%，为121kV和38.5kV。综上可知，正确答案应选B。", "l3": "电力系统", "l4": "第1章"}, {"id": "33868", "t": "1", "q": "电力线路等值参数中消耗无功功率的是（ ）。", "a": ["电导", "电抗", "电阻", "电晕", "", ""], "r": "B", "e": "【定位】第2章，第3节，知识点3：单回架空输电线路的参数及其计算\n【解析】输电线路的参数中，电抗损耗无功功率。", "l3": "电力系统", "l4": "第2章"}]}, {"k": "电工技术", "n": "电工技术（22 题）", "qs": [{"id": "9431", "t": "1", "q": "（ ）运算电路可实现函数Y＝aX1＋bX2＋cX3，a、b和c均小于零。", "a": ["<p>同相比例<\/p>", "<p>加减<\/p>", "<p>同相求和<\/p>", "<p>反相求和<\/p>", "", ""], "r": "D", "e": "【定位】第6章，6.5节，知识点2：加减运算电路。\n【解析】根据函数Y＝aX1＋bX2＋cX3可知，a、b和c均小于零，应选用反相求和运算电路。选项A输出与输入同相，输出只有1项；选项B： a、b和c中有大于零的，也有小于零的；选项D中a、b和c均小于零。", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "9640", "t": "3", "q": "对于感应电动机，转差功率就是转子铜耗。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/Ww0W0Qb7szRRzhnqUllytG5B9DZUQ0ZSayg5mWtv.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "8661", "t": "3", "q": "按照我国的能源政策，火力发电燃料应该以劣质煤为主要燃料。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第4章，4.3节，知识点5：电力发电方式\n【解析】火力发电的燃料主要是自然界蕴藏的各种化石燃料，包括固体燃料（主要是煤炭）、液体燃料（主要是石油及其制品如重油、渣油、柴油等）、气体燃料（主要是天然气、液化石油气、煤层气及由煤炭转换的高炉煤气、焦炉煤气等）。按照我国的能源政策，火力发电燃料应该少用油，不用原油和天然煤气，而主要用煤，特别是劣质煤。", "l3": "电工技术", "l4": "第4章"}, {"id": "8044", "t": "3", "q": "理论上，正弦稳态RC电路中，并联电感，也可以提供整个电路的功率因数。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第3章，3.5节，知识点7：功率因数\n【解析】这道题是说RC电路中，那可以用感性无功功率去补偿一部分容性无功功率，以提高输电线路的功率因数，其原理和方法与在感性电路并联电容提高功率因数相似，所以描述正确。正确选项为A。", "l3": "电工技术", "l4": "第3章"}, {"id": "5589", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/JS09922KwLlEwv54T5VAALh9G4ETTVb6vlYS6Ud1.png\"><\/p>", "a": ["<p>12V<\/p>", "<p>-12V<\/p>", "<p>1.5V<\/p>", "<p>-1.5V<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/u0lu5niCMtTOccebP3W8gvk0iTNoqH9vwY1Hn0Tp.png\"><\/p>", "l3": "电工技术", "l4": "第1章"}, {"id": "9726", "t": "2", "q": "下列器件中属于电压型驱动的是（ ）。", "a": ["<p>GTR<\/p>", "<p>IGBT<\/p>", "<p>Power MOSFET<\/p>", "<p>达林顿管<\/p>", "", ""], "r": "BC", "e": "【考点定位】第9章，第4节，知识点1：门极可关断晶闸管；第9章，第4节，知识点2：电力晶体管；第9章，第4节，知识点3：电力场效应晶体管\n【解析】IGBT和Power MOSFET属于电压型，其余是电流驱动型", "l3": "电工技术", "l4": "第9章-考纲删除"}, {"id": "7953", "t": "1", "q": "正弦交流电的有效值与最大值的数量关系为（ ）。", "a": ["<p>最大值是有效值的1.414倍<\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/Yf9erBv3F3nfJF34OrrStlbpR1hzG39ZmxZTlAPk.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/B34IGFrphHOPAguLWKQFZYbkoLVp4kvWxomc58fo.png\"><\/p>", "<p>没有关系<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/n7S4xFbTvfPHgopz8E7ieswtoTtJFv14QWczfcLx.png\"><\/p>", "l3": "电工技术", "l4": "第3章"}, {"id": "9568", "t": "1", "q": "异步电动机定子旋转磁场的转速和转子转速的差值，叫做（ ）。", "a": ["<p>转差<\/p>", "<p>转差率<\/p>", "<p>滑差<\/p>", "<p>静差率<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/q3bHYkeRl1sjz22FIduLP7jQvuOvgWumjoBptK5R.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "8642", "t": "3", "q": "三相四线制三相电路中，中线可以使三相电路保持对称。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "【定位】第4章，4.1节，知识点4：三相电路\n【解析】三相四线制三相电路的特征：\n对称三相电路是指对称三相电源、对称三相负载和对称三相线路阻抗组成的正弦电流电路。\n三相四线制电路中线相当于是一根接地线，为了保证三相电路的安全，决定不了对称性。对称三相电路是指对称三相电源、对称三相负载和对称三相线路阻抗组成的，不是有没有中线决定的。有中线，能保证负载相电压对称，不是负载对称，更不是电路对称。", "l3": "电工技术", "l4": "第4章"}, {"id": "9584", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/aEizGMAmna5TZkkQsAIv6Zs0ktOu3PvIQmLY9WbR.png\"><\/p>", "a": ["<p>输出功率<\/p>", "<p>总机械功率<\/p>", "<p>电磁功率<\/p>", "<p>转子铜耗<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/Y9lfe1bB7eAeBPCxxImHDbUyHMDUcUPq3miqSKVB.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "5625", "t": "3", "q": "欧姆定律体现了线性电路元件上电压电流的约束关系，与电路的连接方式有关。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260716/Xh9pgosHEWk3pd0JsFO5ITUrfrqxOclBcFqEIwzC.png\"><\/p>", "l3": "电工技术", "l4": "第1章"}, {"id": "9583", "t": "1", "q": "三相异步电动机转子绕组铜耗等于（ ）。", "a": ["<p>sPem<\/p>", "<p>(1-s)Pem<\/p>", "<p>1/(1-s)Pem<\/p>", "<p>1/sPem<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/EFKg450rBdSkmgFswzfhWN4DqnjWhPZjf6Nlu5oP.png\"><\/p>", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "9470", "t": "3", "q": "带阻滤波电路可由一个无源低通和一个无源高通电路相串联后，再与同相比例运算电路组合而成。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "【定位】第6章，6.6节，知识点5：带阻滤波器。\n【解析】1.考点：带阻滤波电路的特点。\n 2.带阻滤波电路可由一个无源低通和一个无源高通电路相并联后，再与同相比例运算电路组合而成。", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "7736", "t": "1", "q": "当实际电流源短路时，实际电流源内部（ ） 。", "a": ["<p>有电流，有功率损耗<\/p>", "<p>有电流，无功率损耗<\/p>", "<p>无电流，有功率损耗<\/p>", "<p>无电流，无功率损耗<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/DkZJLvgOv7ynXcTEiJUSkAUrSuTQjGoL3FlaKow6.png\"><\/p>", "l3": "电工技术", "l4": "第2章"}, {"id": "8593", "t": "2", "q": "对称三相电源的对称主要是指（ ）。", "a": ["<p>三个电源相位相同<\/p>", "<p>三个电源频率相等<\/p>", "<p>三个电源相位互差120° &nbsp;<\/p>", "<p>三个电源幅值相等<\/p>", "", ""], "r": "BCD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/D5CzUY2Y9mbhuuF9dGRbpyfLlwR1heAGjw6t87rw.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "7749", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/tS9P8uHq4rnF4K6CZx62XFYn24wToCPbNQnkBQpz.png\"><\/p>", "a": ["<p>2/3V<\/p>", "<p>1V<\/p>", "<p>3V<\/p>", "<p>2V<\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/3oX1OKwXUhDmjoh8YL8De6ydYosDLzxCpajft9hL.png\"><\/p>", "l3": "电工技术", "l4": "第2章"}, {"id": "8606", "t": "2", "q": "若原三相电路是对称的，无线路阻抗，负载三角形连接，当负载端某一相开路，则（ ）。", "a": ["<p>电源端电压存在对称关系<\/p>", "<p>负载端电流对称<\/p>", "<p>负载端电压不对称<\/p>", "<p>负载端电压对称<\/p>", "", ""], "r": "AD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/196mJJYEqHKE1uO1UKPtYlF7z1CH5keerhP3l3Ub.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "9453", "t": "3", "q": "双端输入双端输出差动放大器在结构上具备对称性，在功能上能够放大差模信号抑制共模信号的输出。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第6章，6.2节，知识点1：工作原理。\n【解析】1.考点：理想运放的“虚短”和“虚断”。\n 2.双端输入双端输出差动放大器在结构上具备对称性，在功能上能够放大差模信号抑制共模信号的输出。", "l3": "电工技术", "l4": "第6章-考纲删除"}, {"id": "8607", "t": "2", "q": "下列说法正确的是（ ）。", "a": ["<p>三相电路的总有功功率为各相有功功率之和<\/p>", "<p>三相电路的总无功功率为各相的无功功率之和<\/p>", "<p>三相电路的总视在功率为各相的视在功率之和<\/p>", "<p>三相电路的总复功率为各相的复功率之和<\/p>", "", ""], "r": "ABD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260717/uEdjwcEBOFmcNtyUgXcmLvXGAlCgXfgtIk6jfen7.png\"><\/p>", "l3": "电工技术", "l4": "第4章"}, {"id": "9595", "t": "1", "q": "一般情况下，分析三相异步电动机的起动主要目的是尽可能使（ ）。", "a": ["<p>起动电流小，最大转矩大<\/p>", "<p>起动电流小，起动转矩大<\/p>", "<p>起动电流大，起动转矩小<\/p>", "<p>起动电流大，过载能力<\/p>", "", ""], "r": "B", "e": "【定位】第8章，第4节，知识点3：异步电动机的起动 \n三相异步电动机起动要尽可能的使起动电流小，以此减少对电网的冲击；起动转矩大，以此减少起动时间。\n【解析】本题考察三相异步电动机的起动。三相异步电动机起动要尽可能的使起动电流小，以此减少对电网的冲击；起动转矩大，以此减少起动时间。因此，本题答案为B选项。", "l3": "电工技术", "l4": "第8章-考纲删除"}, {"id": "8054", "t": "3", "q": "将两个互感线圈的异名端串联接在一起，磁场增强，等效电感增大。（ ）", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "【定位】第3章，3.8节，知识点2：去耦等效电路\n【解析】从题干可知，“将两个互感线圈的异名端串联接在一起”，考核的是耦合电感的串联，异名端串联，则表示一个线圈的同名端与另一个线圈的非同名端相接，这是顺向串联的接法，判断出这一点是非常关键的。\n对于顺向串联，两线圈的磁场增强，等效电感增大，因此本题的题干所给的结论是正确的，选A。", "l3": "电工技术", "l4": "第3章"}, {"id": "9414", "t": "1", "q": "下面关于集成运算放大器的特点说法错误的是（ ）。", "a": ["<p>高增益<\/p>", "<p>高可靠性<\/p>", "<p>高成本<\/p>", "<p>小尺寸<\/p>", "", ""], "r": "C", "e": "【定位】第6章，6.3节，知识点1：集成运算放大器的组成\n【解析】1.考点：集成运算放大器的特点。\n 2.集成运算放大器的特点：高增益、高可靠性、低成本、小尺寸。", "l3": "电工技术", "l4": "第6章-考纲删除"}]}, {"k": "数学", "n": "数学（24 题）", "qs": [{"id": "27638", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/GNjPl577oOJqIHdbiYe47pSR5VJWpCcr1PCt90JN.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/QFflzn5Y0wfB6xn6HnugwDgfSFtVp2cM0RpcnxP7.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/4ZM2tQ4S5eWkJsnU0CdZZjZlgEcboGtgm2lT0C46.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/opzNULK3Uc2PppOQuK79klJhJudfkO9A8Bgl3R4F.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/cL9Rg5NDhKyHi6r4Iavah8eQ1KHO9SyEYrGXUyqT.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/KR6YME2DcvSdS69Il4ognCeJBhvixImzFziQSili.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "29377", "t": "3", "q": "<p>可微的周期函数其导数一定仍是周期函数，但周期不一定相同 。（ ）<\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/u0NmGJgXrdXMVfQU7hAnFEbpnlFl5T5yqBNFTcU1.png\"><\/p>", "l3": "数学", "l4": "第2章"}, {"id": "27644", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/rY6ojrnhpw9FEc3zJpSG2vce9swOkAIfIMAVTLaa.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/oQmIxCI3NW8900abPjmXE7XQo7sw6gEY9zP9xZGw.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/dtaPAAxFQiop8NtoPezLg0M33SZQU6MLqIxYy92z.png\"><\/p>", "<p>0<\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/AplC8IuD4pjhSJiAUsIRh2PU6UEDylim4OLWjoQq.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/1bJb5kHXZgjlvlQ8QmdBldCq3hBPY9RggJHfm3ev.png\"><\/p>", "l3": "数学", "l4": "第1章"}, {"id": "38759", "t": "2", "q": "下列结论正确的是（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/YEoUcCMKnd83wOTA7chjyMcYFEPv2JY7IQxPGOsW.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/HZP1u0y01BNnuOu68jRwn4z1bDJcjhu3S2wfqZHh.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/7vqT6QrKoRwgsVCxMJDrJVy0XgEHHXbMb9z5mwPb.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/P6xFU6x6O66a0c4vDpao4U83iEkYFXOwu6WCnJXY.png\"><\/p>", "", ""], "r": "ABD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/0JSoqNQJaewHeo1IIOLKRJ8njZHEB8chbRSDHEK1.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "37965", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/uBtd1amWtsi56CWIj07mLitnN6jzVszAnmWxE9bF.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/9wymBtitj6obDXhWP0amk9D69pAqdUKG3PyjPTZM.png\"><\/p>", "l3": "数学", "l4": "第8章"}, {"id": "37949", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/h0YVPoZa0aKHNFPBLQxS9PtNizzFYdMgHC3Cz3nK.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/KiePneOe3oeFHWzHoxVrzv9UildP3lEVrFZnrAJ1.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/hwe3fIT7edk4s0piy0XT1fwlq2UqXshlfnuT86o5.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/kvZNDLq526fZjvH7sQxxJFEP4yVxx6N0wK657r4i.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/VSmQfYg4B5SONQCuSEgAyHXIH2SexrjfXnWE6Nr0.png\"><\/p>", "", ""], "r": "AC", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/rGkIGjL8cwh05aBGzSYdZdoP9MKVO33HFgZ0pC6Z.png\"><\/p>", "l3": "数学", "l4": "第8章"}, {"id": "37740", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/pc9PE8UXouGvx9KWReUijIkqRJRQ3Uj1oe8NAKhP.png\"><\/p>", "a": ["<p>0<\/p>", "<p>3<\/p>", "<p>4<\/p>", "<p>5<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/5090FT6qkZu7NQYjKNsM3OgZtRt2UfW4dQR77UQg.png\"><\/p>", "l3": "数学", "l4": "第7章"}, {"id": "38715", "t": "1", "q": "<p>随机地掷六颗骰子，试利用切比雪夫不等式估计：六颗骰子出现的点数总和不小于9且不超过33点的概率（ ）。<\/p>", "a": ["<p>0.1<\/p>", "<p>0.5<\/p>", "<p>0.7<\/p>", "<p>0.9<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/tFsvOSamenG9FokYd1U9TZZobeDbd8TvlgQmw6Ut.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "31655", "t": "1", "q": "下列级数中收敛的是（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/bAEhqJAjhK5izKloNA4mh88VV5GeHFAgtFmEPx6R.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/qC48Z8ErkwQw7h8A8x60ar3saQfkezZpqrmgpmrS.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/PobUqSD0HJUHUiGl1YY74GfE3JUzhJGZSN8OKX6s.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/73Y0Qs4yS3Sx8pKgntVdkWZH8ZfmFhxxhVM0Zrxh.png\"><\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/isvQQTja2mHW7JvGKaNSDuzBq3vBMsTUvaQHYfXn.png\"><\/p>", "l3": "数学", "l4": "第5章"}, {"id": "30037", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/keZU0Ze1GH8sF83bqtK9WY66n5apuEebmqPEaJ2W.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/TEIwOgPxFGSh3zKxvmJdGzHcYZJpMWVWJQW4WPLR.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/zmA0hlQSjLw9hyYt1tBIjqCL17Lgu9jn84MLmRnU.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/gk11Y7P3tALIPYwViTQv4KgmZQnkiAP52K7rYt2q.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/eg8NBMP8o6skiFbhqh716D1iU82ScCCTb4dfz9Tb.png\"><\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260904/PkQUjwDJ5qlTqz585rBqt4gcoHMPsgSgzulPgQTm.png\"><\/p>", "l3": "数学", "l4": "第3章"}, {"id": "38615", "t": "2", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/IoiX7cfAm4xNC2pa7YooiIlcWZWYU2RgxpnlO717.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/eUurR30814fqGSj1FmjbJFnOluINxESu4ADfgCVM.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/KExidSYL2IgtjLliejtFUBKpJOY3plQTsThdf75l.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/80Rk5Fy11hyPtpHgGq5tRMzJ4R6l5FFWC51WA3F2.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/xElxWU5KD95ogiR3hKJ2AVNqeitoqnJpkMZtWkoF.png\"><\/p>", "", ""], "r": "AD", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/bEy2DzF8Md3hM4ExDMSMAX0gneOzfboXzzYzX3zU.png\"><\/p>", "l3": "数学", "l4": "第10章"}, {"id": "38597", "t": "1", "q": "<p>下列矩阵中是正定矩阵的为（ ）。<\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/n1bPyjo2I8SvoCtwNeGaazSahQWVqEbsUDgKv9YS.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ncyZ6rsrdLwEnRZaV6pOatDvDUXpZlyUI3kYRFNc.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/cMDHwJxm3DZIFBwZX2cwlQq4iM84mg1rNdGaPOZ9.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/z6cJSoZRSnGFxjCUFMMTdwkZAAG6ukWeXObBGODB.png\"><\/p>", "", ""], "r": "C", "e": "【定位】本题考查10章，2节，知识点3。\n【难度】中等+计算\n【解析】知识：正定矩阵判定—顺序主子式\nA选项顺序主子式不全为正；B非实对称", "l3": "数学", "l4": "第10章"}, {"id": "30027", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/pjUklxukcHKSpUpOfhqmIg8f6WH3XOrjjJu2WwBI.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260723/u6c4Ouoqj9LZPbZ1iMGXu0WBMeGtHVRn81mQJM32.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/NeQkVIhSbBPld6BBXdtyfJRBpC5EomXu1ApmMRLx.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/rC89yjecTroimolkd2z8Y7VKZyUAvJd77fca6cNj.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/V2bWEY5Uo7aNLjqd5cdYdmMcVGRYhVAAo48Ku92k.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/W1KBrTZXjvO5YsV17XBwtdr1NXwu1TnRJTxb82yE.png\"><\/p>", "l3": "数学", "l4": "第3章"}, {"id": "31735", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/YHNS4s0cirV0G8oFOqX2MleF6T0lWDCYabQmxETL.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/T6EcBnt1pjMkHiYCn419H68LvOOuVLtVATT4M9iv.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/nN02Ro6RHqOwnuJediuwwPlGfYKstm5DJtj9Kl2Y.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/XgEiZkACpbnbB67fQpMdWJSxm6TURENLD1oheXUg.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/i0yxw1qVwQumwlS2NA7qskfOt9lX89Zbtu0DQMNk.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/6XanOg0THE32bmQbuMtFP6eTlD9z95LK2Rsie24b.png\"><\/p>", "l3": "数学", "l4": "第6章"}, {"id": "38712", "t": "1", "q": "将一枚硬币连掷100次，试用隶莫佛--拉普拉斯定理计算出现正面的次数大于60的概率（ ）。", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260729/q9uNsR8VzMb9aVhQX1nYUtqNg2lxW1TXkjLe2Ldp.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/IrLCoxski1WroElnowhzTFVY09E3iFLi6Gm8zbA4.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/QNU5dZy3JiyOVCUnChXMUGZozSHPbSfiTgctfIhX.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/3Sms3v9LvN6mQS0qN5lc3cF2tWsEXffZQxmAef8G.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/9Wfu2AB5o4c0hw9NCX5WrZ7V2ctMjODfNR1oNr7v.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "29328", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/qfrXi5EQ7i6bjvhF23pQr7KGF8XpnckIUsI38kfT.png\"><\/p>", "a": ["<p>99<\/p>", "<p>-99<\/p>", "<p>99!<\/p>", "<p>-99!<\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/j3PUjsp0q3LEFMP2l1BTcBJB4edu1ZOQXG0xO80n.png\"><\/p>", "l3": "数学", "l4": "第2章"}, {"id": "31745", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/uAsJNmNhaT3rA8Y5dkqblmOAjXOhYTR72I3HPSx2.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/vqdrFswQeW6LpqsgX2E4phSB6KzXweKRK5UTIH3y.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/EgLssuTtmYs2YJ3yW5QV6mT3bI7UORL9UV4G8ZP4.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/adFmECKTDVUkSHfYDLJqefcIhuakUcGzSsFXnseP.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/IlgAqfLFGkggeudYHiKXx1tXzqYbdyGwt7fMEO9i.png\"><\/p>", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/bH0noHA6bMA8NIFYdiUvjsmM3FMTmQ3v5q1HUBio.png\"><\/p>", "l3": "数学", "l4": "第6章"}, {"id": "38981", "t": "1", "q": "下列模型中可直接输出概率值用于二分类的是（ ）。", "a": ["线性回归", "逻辑回归", "K-Means", "DBSCAN", "", ""], "r": "B", "e": "【难度】1\n【解析】考察第14章14.1 机器学习基本概念-知识点9：经典监督学习算法-逻辑回归特性\nA.线性回归输出连续数值，仅用于回归任务，错误 \nB.逻辑回归通过sigmoid 映射输出0到1概率，适用于二分类，正确 \n&C.、D.：K-Means、DBSCAN为无监督聚类算法，无法输出分类概率，错误", "l3": "数学", "l4": "第14章"}, {"id": "29340", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/WFnydXaK8y7OPRh6BDj9M9Abi7uMMunVTxzB7Kya.png\"><\/p>", "a": ["<p>只有一实根<\/p>", "<p>至少有一实根<\/p>", "<p>没有实根<\/p>", "<p>至少有2个实根<\/p>", "", ""], "r": "B", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260723/aEGYUbwB2FYNhzGuEuKSwZ81Zy0N6spvasj7wNjo.png\"><\/p>", "l3": "数学", "l4": "第2章"}, {"id": "38771", "t": "3", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/IeD4YBuEMYgx3Lmdp9wkHED8eMayFWQHrnI88ZV7.png\"><\/p>", "a": ["<p>正确<\/p>", "<p>错误<\/p>", "", "", "", ""], "r": "A", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/9a3fBLujzLFwly0Cfi6TLB44Njre6a8CNKYfML2G.png\"><\/p>", "l3": "数学", "l4": "第12章"}, {"id": "37993", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/ILvt6zSBIekUgAtO5G3vQxDZ6bCboNvq9OL4kCQ5.png\"><\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260728/cR3ftckLafN6Hy8Km8ck38W6M2FKKvJrsVSYc59w.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/hAKrVgdOCJgLHGjOcxPyMuZRTeWQKdoR8Vmk5mYb.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/ECN48RhlMUGpZkLnwuTzpaqRh56BtuWI7RJqrLHu.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/yRadlRN28o4UvjmzSusNl6LIE2yPRjsxpaaafHAV.png\"><\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/BxU0wUgGEpjKKOt9gs7F2jDviq5yzThB1JnD94Sw.png\"><\/p>", "l3": "数学", "l4": "第9章"}, {"id": "38662", "t": "1", "q": "玻璃杯成箱出售，每箱20只，假设各箱含0，1，2只残品的概率分别是0.8，0.1，0.1，一顾客欲购一箱玻璃杯，在购买时，售货员随意取一箱，而顾客随机察看1只，若无残次品，则买下该箱玻璃杯，否则退回，如果顾客确实买下该箱，则此箱中确实没有残次品的概率为（ ）。", "a": ["<p>0.94<\/p>", "<p>0.14<\/p>", "<p>160/197<\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/ZGA3lDNrRB7iHhxyNGJOgclKGedYoaJZZUtOhc8t.png\"><\/p>", "", ""], "r": "C", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260729/HVgA4EMRJrZlf7vPgSbPG8O75RvWEOquNx0Ouzlc.png\"><\/p>", "l3": "数学", "l4": "第11章"}, {"id": "31660", "t": "1", "q": "<p>下列级数中发散的是（ ）。<\/p>", "a": ["<p><img src=\"https://dati.gwzpks.com/uploads/20260725/VqcTgNAtjhaGrazZEZlDhPB7FtP31NUIDwwwGIxt.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/uVBz3cxh4G0CAja8v7PyDPTpnKNZcoIgxCHmDKUZ.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/PJXv2qLrIHyvQm5UrhrOCh9ZFLZmYkIhu8UqeJpj.png\"><\/p>", "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/AMzs9npmKqMYk8j7X6qO5TFArpgDtx4cdvHfYMg7.png\"><\/p>", "", ""], "r": "D", "e": "<p><img src=\"https://dati.gwzpks.com/uploads/20260725/IAkEo5jwQtb0oUsljtPotbOzC2sWPN8wf4rGhHKk.png\"><\/p>", "l3": "数学", "l4": "第5章"}, {"id": "38010", "t": "1", "q": "<p><img src=\"https://dati.gwzpks.com/uploads/20260728/JIGesXNVJfPYBRdhqQfPtJb4jDLyI72c4Qkhxbox.png\"><\/p>", "a": ["<p>如果（Ⅰ）线性无关，则（Ⅱ）线性无关<\/p>", "<p>如果（Ⅰ）线性相关，则（Ⅱ）线性相关<\/p>", "<p>如果（Ⅱ）线性无关，则（Ⅰ）线性相关<\/p>", "<p>如果（Ⅱ）线性相关，则（Ⅰ）线性相关<\/p>", "", ""], "r": "B", "e": "【定位】本题考查9章，1节，知识点3。\n【难度】难+计算\n【解析】（Ⅰ）线性相关，则（Ⅱ）线性相关；（Ⅱ）线性无关，则（Ⅰ）线性无关。", "l3": "数学", "l4": "第9章"}]}, {"k": "计算机", "n": "计算机（12 题）", "qs": [{"id": "28060", "t": "1", "q": "计算机网络中传输介质传输速率的单位是bps，其含义是（ ）。", "a": ["字节/秒", "字/秒", "字段/秒", "二进制位/秒", "", ""], "r": "D", "e": "【定位】第3章 网络技术基础, 3.2 计算机网络的分类, 知识点1 计算机网络的分类。\n【解析】计算机网络中传输介质传输速率的单位是bps，即bits per second，二进制位/秒。", "l3": "计算机", "l4": "第3章"}, {"id": "27494", "t": "1", "q": "以（ ）为扩展名的文件是可以直接执行的。", "a": ["exe", "txt", "tmp", "jpg", "", ""], "r": "A", "e": "【定位】第2章 计算机软件基础, 2.2 操作系统基本概念和功能, 知识点3 Windows11操作系统。\n【解析】“.exe”文件是二进制命令文件，是可以直接执行的程序文件。“.txt”文件为文本文件， “.tmp”文件是临时文件 “.jpg”是图像文件，它们都不是二进制程序文件，不能直接执行。因此，正确答案为A。", "l3": "计算机", "l4": "第2章"}, {"id": "28103", "t": "1", "q": "TCP/IP网络的最上层是（ ）。", "a": ["网络接口层", "网际层", "传输层", "应用层", "", ""], "r": "D", "e": "【定位】第3章 网络技术基础, 3.4 计算机网络协议与体系结构, 知识点3 计算机网络体系结构。\n【解析】Internet有4层，自底向上依次为：网络接口层、网际层、传输层、应用层。因此，最上层是应用层。因此，正确答案为D。", "l3": "计算机", "l4": "第3章"}, {"id": "27297", "t": "1", "q": "微机硬件系统中最核心的部件是（ ）。", "a": ["<p>内存储器<\/p>", "<p>输入输出设备<\/p>", "<p>CPU<\/p>", "<p>硬盘<\/p>", "", ""], "r": "C", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点7 计算机硬件系统。\n【解析】CPU，又称中央处理器，包含控制器和运算器两大核心，是计算机的指挥中心和计算中心，是计算机中最核心的硬件。", "l3": "计算机", "l4": "第1章"}, {"id": "27411", "t": "2", "q": "计算机的应用领域包括（ ）。", "a": ["科学计算", "数据处理", "过程控制", "人工智能", "", ""], "r": "ABCD", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点6 计算机的基本工作原理。\n【解析】选项 A：科学计算（数值计算）→ 属于核心应用领域\n科学计算是计算机最早的应用场景之一，核心是处理复杂的数学运算和数值分析，解决人类手工计算无法完成的难题。\n典型场景：天气预报（大气运动方程求解）、航天工程（卫星轨道计算）、量子物理（粒子运动模拟）、建筑结构力学分析等。\n这些场景依赖计算机的高速运算能力，因此 A 属于计算机的应用领域。\n选项 B：数据处理（信息处理）→ 属于核心应用领域\n数据处理是当前计算机最广泛的应用，核心是对大量结构化 / 非结构化数据进行收集、存储、整理、分析、展示，提取有用信息。\n典型场景：企业财务报表统计、电商平台用户消费数据分析、医院病历管理、政务系统人口信息归档等。\n几乎所有行业都依赖计算机进行数据处理，因此 B 属于应用领域。\n选项 C：过程控制（实时控制）→ 属于核心应用领域\n过程控制的核心是计算机实时采集工业设备的运行数据（如温度、压力、转速），根据预设规则自动调整设备参数，确保生产过程稳定、精准。\n典型场景：汽车生产线自动化控制、化工反应釜温度压力实时调节、电力系统电网负荷平衡控制、数控机床加工精度控制等。\n这是工业自动化的核心技术，因此 C 属于应用领域。\n选项 D：人工智能（AI）→ 属于前沿且重要的应用领域\n人工智能是计算机技术的高级应用，核心是模拟人类的智能行为（如学习、推理、识别、决策） ，让计算机具备 “感知、思考、行动” 的能力。\n典型场景：语音识别（如手机语音助手）、图像识别（如人脸识别门禁）、机器学习（如推荐算法）、智能机器人（如工业巡检机器人）、自然语言处理（如机器翻译）等。\nAI 是当前计算机技术的核心发展方向之一，因此 D 属于应用领域。\n因此，计算机的应用领域涵盖科学计算、数据处理、过程控制、人工智能等，选项 ABCD 均正确。", "l3": "计算机", "l4": "第1章"}, {"id": "27523", "t": "1", "q": "<p>（其它工学）以下程序输出结果是（　）。<\/p>\n<p>int main() {<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;int a[3][4] = {0};<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;int i, j, n = 1;<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;for(i = 0; i &lt; 3; i++)<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for(j = 0; j &lt; 4; j++)<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[i][j] = n++;<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;printf(\"%d\", a[1][2] + a[2][3]);<\/p>\n<p>&nbsp;&nbsp;&nbsp;&nbsp;return 0;<\/p>\n<p>}<\/p>", "a": ["<p>13<\/p>", "<p>15<\/p>", "<p>17<\/p>", "<p>19<\/p>", "", ""], "r": "D", "e": "【定位】第2章 计算机软件基础, 2.5 C程序设计基础, 知识点6 数组。\n【解析】a[0][0]=1,a[0][1]=2,a[0][2]=3,a[0][3]=4,a[1][0]=5,a[1][1]=6,a[1][2]=7,a[1][3]=8,a[2][0]=9,a[2][1]=10,a[2][2]=11,a[2][3]=12，7+12=19。", "l3": "计算机", "l4": "第2章"}, {"id": "28204", "t": "1", "q": "网络安全的基本属性是（ ）。", "a": ["机密性", "可用性", "完整性", "上面3项都是", "", ""], "r": "D", "e": "【定位】第4章 信息安全技术, 4.1 信息安全技术概述, 知识点1 信息安全和信息系统安全。\n【解析】网络安全的基本属性有：数据的保密性、完整性和可用性。", "l3": "计算机", "l4": "第4章"}, {"id": "27330", "t": "1", "q": "Cache是位于（ ）和（ ）之间的存储器。", "a": ["CPU和外设", "CPU和寄存器", "CPU和内存", "内存和外存", "", ""], "r": "C", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点7 计算机硬件系统。\n【解析】Cache即高速缓冲存储器，是位于CPU和内存之间的存储器，它的读写速度比DRAM快，但容量较小，主要用于存放当前内存中使用最多的程序块和数据块，并以接近CPU工作速度的方式向CPU提供数据。因此，正确答案为C。", "l3": "计算机", "l4": "第1章"}, {"id": "28431", "t": "2", "q": "以下哪些技术或工具是大数据生态系统的一部分（ ）", "a": ["Hadoop", "Spark", "MongoDB", "Microsoft Excel", "", ""], "r": "ABC", "e": "【定位】第5章 信息科学前沿, 5.3 大数据, 知识点1 大数据。\n【解析】Hadoop、Spark和MongoDB是大数据生态系统中常用的技术和工具，而Microsoft Excel主要用于桌面级的数据处理，不属于大数据生态。", "l3": "计算机", "l4": "第5章"}, {"id": "27327", "t": "1", "q": "下列叙述中，错误的是（ ）。", "a": ["硬盘在主机箱内，它是主机的组成部分", "硬盘是外部存储器之一", "硬盘的技术指标之一是每分钟的转速rpm", "硬盘与CPU之间不能直接交换数据", "", ""], "r": "A", "e": "【定位】第1章 计算机硬件基础, 1.1 计算机系统的组成与功能, 知识点4 计算机系统的组成。\n【解析】主机包括CPU和内存，硬盘虽然安装在主机箱内，但它属于外部存储器，不是主机的一部分，硬盘且由于读写速度慢，不与CPU直接交换数据，需要使用硬盘上的程序或数据时，需要先调入到内存中。rpm是每分钟的转速，属于硬盘的技术指标之一。因此，A答案错误。", "l3": "计算机", "l4": "第1章"}, {"id": "27489", "t": "1", "q": "下列各类计算机程序语言中，属于低级程序设计语言的是（ ）。", "a": ["C++语言", "C语言", "Java语言", "机器语言", "", ""], "r": "D", "e": "【定位】第2章 计算机软件基础, 2.3 高级程序的开发与执行, 知识点1 程序和程序设计语言。\n【解析】C++、Java都属于高级编程语言，属于低级编程语言的只有机器语言和汇编语言。因此，正确答案为D。", "l3": "计算机", "l4": "第2章"}, {"id": "28449", "t": "3", "q": "人工智能在医疗领域的应用可以完全取代医生的角色。（ ）", "a": ["正确", "错误", "", "", "", ""], "r": "B", "e": "【定位】第5章 信息科学前沿, 5.4 人工智能, 知识点1 人工智能。\n【解析】 AI在医疗领域可以辅助诊断、提高效率和精确度，但它不能完全取代医生的专业判断和人文关怀。", "l3": "计算机", "l4": "第5章"}]}, {"k": "一般能力", "n": "一般能力（14 题）", "qs": [{"id": "46261", "t": "1", "q": "关于我国的传统节日与习俗，下列对应正确的是（ ）。", "a": ["上元节——猜灯谜、赛龙舟", "清明节——踏青、佩香囊", "七夕节——吃巧果、拜织女", "中秋节——登高、吃月饼", "", ""], "r": "C", "e": "【解析】A项错误，上元节，又称元宵节、小正月、元夕或灯节，为每年农历正月十五，是中国的传统节日之一，有赏花灯、吃汤圆、猜灯谜、放烟花等传统民俗活动。赛龙舟是端午节的传统民俗活动。B项错误，清明节，又称踏青节、行清节、三月节、祭祖节等，是传统的重大春祭节日，有踏青郊游、扫墓祭祖等传统民俗活动。佩香囊是端午节的传统民俗活动。C项正确，七夕节，又称七巧节、七姐节、乞巧节等，是中国民间的传统节日，经历史发展，七夕被赋予了“牛郎织女”的美丽爱情传说，成为象征爱情的节日。传统民俗活动主要有拜织女、储七夕水、吃巧果、乞求巧艺与姻缘等。D项错误，中秋节，又称月夕、秋节、仲秋节或团圆节，是流行于中国众多民族与汉字文化圈诸国的传统文化节日。传统民俗活动主要有祭月、赏月、拜月、吃月饼、赏桂花、饮桂花酒等。登高是重阳节的传统民俗活动。", "l3": "一般能力", "l4": "1.11节"}, {"id": "46413", "t": "1", "q": "威客模式是指一些人通过互联网把自己的智慧、知识、能力、经验转换成实际收益，他们在互联网上通过解决科学、技术、工作、尘活、学习中的问题从而让知识、经验、技能产生经济价值。\n根据上述定义，下列属于威客模式的是（ ）。", "a": ["某高校学生建立的免费回答中小学生学习问题的公益网站受到了学生和家长的好评，当地一家教育机构出资赞助扩大这个网站的规模，以帮助更多的学生", "某IT技术人员用业余时间开了一个小公司，主要在网络远程帮助他人修理电脑", "某大学毕业生在一个B2C网站上开了一家服装店，运用自己的人脉资源使网店很快就开始盈利", "某影师个人网站上的摄影作品吸引了大批网友浏览、转发，后来该摄影师依靠在该网站上发布摄影器材广告带来大量收入", "", ""], "r": "B", "e": "【解析】注意，过程是把自己的智慧、知识、能力、经验转换成实际收益，A项为公益性质，并没有产生经济价值。C项和D项只是借助网络平台，而并不是将自己的智慧、知识、能力、经验直接转化为经济收益。B项属于利用网络，是自己的技术直接转化为经济收益。", "l3": "一般能力", "l4": "2.3节"}, {"id": "46616", "t": "1", "q": "打开A.B.C每一个阀门，水就以各自不变的速度注入水槽。当三个阀门都打开时，注满水槽需要1小时；只打开A.、C两个阀门，需要1.5小时；只打开B.C两个阀门，需要2小时。若只打开A.B两个阀门时，需要（ ）小时注满水槽。", "a": ["1.1小时", "1.15小时", "1.2小时", "1.25小时", "", ""], "r": "C", "e": "【解析】设工程总量为6个单位，A+B+C=6，A+C=4，B+C=3，可解得A=3，B=2，C=1。A+B=5，需要6/5=1.2个小时。", "l3": "一般能力", "l4": "3.2节"}, {"id": "46208", "t": "1", "q": "下列各项中，没有语病的一项是（ ）。", "a": ["据多家媒体报道，我国发射的第一艘试验飞船在完成了空间飞行试验后，于北京时间3时41 分在内蒙古中部地区安全着陆", "这位著名建筑大师在国际学术界被公认为现代派建筑的代表人物，他所有建造 在亚洲的作品既充满现代气息，又带着一种神秘的东方情调", "“垂直管理”如今是一个很热门的改革思路，最近爆出的邱晓华案，对这个问题敲响了警钟", "台湾地震发生后，中国红十字总会迅速组成了几支赴台医疗队，准备携带先进的医疗器材、药品和大陆人民的热情奔赴台湾灾区", "", ""], "r": "A", "e": "【解析】A 项：没有语病，当选。\nB 项：语序不当，应改为“他在亚洲建造的所有作品”，排除。\nC 项：搭配不当，应改为“给人们敲响了警钟”，排除。\nD项：“携带”和“大陆人民的热情”搭配不当，排除。\n本题为选非题，故正确答案为A。", "l3": "一般能力", "l4": "1.9节"}, {"id": "46665", "t": "1", "q": "部地区各省(市)中，2019年上半年软件业务收入占地区软件业务总收入的比重同比提高的有（ ）。", "a": ["5个", "6个", "7个", "8个", "", ""], "r": "D", "e": "【解析】第一步，本题考查两期比重比较。\n第二步，定位表格“省（市）”、“软件业务收入同比增长（%）”两列。\n第三步，根据两期比重比较口诀，“部分增长率a＞整体增长率b，比重上升；反之，比重下降”，问题要求今年高于去年，则需要部分的增长率a＞整体的增长率b。整体增长率为14.6%，观察发现高于这一数值的有北京（15.5%）、天津（20.3%）、河北（34.3%）、江苏（15.2%）、浙江（16.3%）、福建（15.5%）、山东（16.5%）、海南（43.8%），共计8个。\n因此，选择D选项。", "l3": "一般能力", "l4": "1.资料分析"}, {"id": "46752", "t": "1", "q": "2018年，全国能源消费总量同比增长约（ ）亿吨标准煤。", "a": ["0.9", "1.5", "2.1", "2.5", "", ""], "r": "B", "e": "【解析】第一步，本题考查已知现期量与增长率的增长量计算问题。\n第二步，定位文字材料“2018年全年能源消费总量46.4亿吨标准煤，比上年增长3.3%”。\n第三步，根据增长量=现期量×增长率/（1+增长率），3.3%≈1/30，利用增长量计算n＋1原则可得46.4÷31≈1.5。\n因此，选择B选项。", "l3": "一般能力", "l4": "1.资料分析"}, {"id": "46150", "t": "1", "q": "体育竞技掺入越来越多的经济利益，会驱使一些人走向极端。虽然目前运动员的自然能力仍占主导，但是如果有一天科技手段足以超越自然赋予的力量，运动员在日常不需要严格训练，而是通过仪器、手术来增强体质，这与驾驶着摩托车去参加百米竞赛是否还有本质区别?这不仅是抛给体育界的问题，也将成为科学的两难。\n“这不仅是抛给体育界的问题”中的“这”指的是（ ）。", "a": ["通过仪器、手术来增强体质", "科技手段的作用超过运动员的自然能力", "让运动员的自然能力占据主导地位", "体育竞技在经济利益驱使下走向极端", "", ""], "r": "B", "e": "【解析】如果按照“就近指代”，很多同学会机械地选择A。但文段的结构很明显，第二句话引导的问题导致了“指示代词”引导的结果（最后一句），按照刚刚说的两点：第一，指代就近的论述核心，也就是第二句中的“科技手段”，仪器、手术是“科技手段”的例证；第二，看引导的结果“科学的两难”，和论述核心一致的还是B项。", "l3": "一般能力", "l4": "1.6节"}, {"id": "46062", "t": "1", "q": "数字化阅读丰富了我们的文化生活，已经成为重要的阅读方式之一，也成为当下很多人尤其是年轻人学习知识和获取信息的重要途径。然而，与传统阅读方式相比，数字化阅读华丽的外表下面，却有一种触手可知的冰冷感。古人讲开卷有益，但当开卷变成了开机，当纸张变成了按键，当厚重的二十四史变成了电脑里一个小小文档，我们又该何处寻找开卷阅读的乐趣呢?\n作者对数字化阅读的态度是（ ）。", "a": ["肯定性", "否定性", "批判性", "怀疑性", "", ""], "r": "C", "e": "【解析】这道题目是隐含作者观点的类型。作者通过转折词“然而”引出关键句，“数字化阅读华丽的外表下面，却有一种触手可知的冰冷感”，由此可知作者对数字化阅读持批判的态度，作者并不认同数字化阅读的实质。末尾“我们又该如何寻找开卷阅读的乐趣呢?”再次用疑问形式强化了批判的态度，因此选C", "l3": "一般能力", "l4": "1.3节"}, {"id": "46790", "t": "1", "q": "2020年参加城镇职工和城镇居民基本医疗保险的女性比2015年增长了约多少倍？（ ）", "a": ["0.7", "1.2", "1.7", "2.2", "", ""], "r": "A", "e": "【解析】考查杠杆原理；由第四段（2020年，参加城镇职工基本医疗保险的女性1.4亿人，比2015年增长21.5%；参加城镇居民基本医疗保险的女性1.9亿人，比2015年增长了1.5倍），（21.5%+150%）÷2=85.75%，结合选项，选A", "l3": "一般能力", "l4": "1.资料分析"}, {"id": "46648", "t": "1", "q": "某外国语学院有90%的学生精通英语，85%的学生精通韩语，70%的学生精通日语，则该校精通英语、韩语、日语三门语言的学生至少占该学院的（ ）。", "a": ["<p>55％<\/p>", "<p>45％<\/p>", "<p>15％<\/p>", "<p>10％<\/p>", "", ""], "r": "B", "e": "【解析】由于“有90%的学生精通英语，85%的学生精通韩语，70%的学生精通日语”，可知不精通英语的学生占10%，不精通韩语的学生占15%，不精通日语的学生占30%。综上可知，不精通英语、韩语、日语的学生最多占全体学生的10%+15%+30%=55%。则精通英语、韩语、日语的学生最少占全体学生的1-55%=45%。故正确答案为B。", "l3": "一般能力", "l4": "3.2节"}, {"id": "46209", "t": "1", "q": "下列语句中，有语病的一句是（ ）。", "a": ["仍然有人经常问及中美科幻的差距，但现在的答案已与十年前格外大相径庭", "书是工具和媒介，它是用来传播知识的，只有被使用它才有价值", "广交会的延期举办不仅是一项经济命题，也是一项政治命题，更是一项生命命题", "红荷的红不同于桃、杏，鲜艳中显出端庄，就像白玉兰于素静中显出华贵一样", "", ""], "r": "A", "e": "【解析】A 项：“格外”即表示超过寻常，“大相径庭”比喻彼此差别很大，极为不同，两者均有超过寻常之意，可删除“格外”，该项语义重复，当选。\nB 、C 、D三项：均表意明确，没有语病，排除。\n故正确答案为A。", "l3": "一般能力", "l4": "1.9节"}, {"id": "46059", "t": "1", "q": "推动戴口罩“入法”需防范执行难的问题。倘若戴口罩仅属于文明倡导，是否执行全凭自觉，就会显得刚性不足;倘若戴口罩“入法”的处罚过于严厉，又容易导致过犹不及。若能引导在先、首违免罚、罚则较轻、屡违重罚，刚性的法规就具备了更强的柔性约束力，从而做到刚柔并济。\n关于戴口罩“入法”，作者的态度是（ ）。", "a": ["无条件地支持", "有条件地支持", "未置可否", "坚决反对", "", ""], "r": "B", "e": "【解析】文段开篇指出“推动戴口罩‘入法’”需防范执行难的问题，随后分别从“文明倡导”和“处罚过于严厉”两个方面对问题展开进一步的分析，尾句提出对策，指出如果能够给戴口罩“入法”设置一些条件，刚性的法规就具备了更强的柔性约束力，从而刚柔并济，解决戴口罩“入法”执行难的问题，由此可知，作者对于戴口罩“入法”的态度是有条件地支持，对应B项\n　　A项“无条件地支持”、D项“坚决反对”均与作者态度相悖，排除;\n　　C项，“未置可否”强调未明确表态，而文中作者已经给出明确的态度，即戴口罩“入法”需要有一定条件支撑，与文意不符，排除。\n故正确答案为B。", "l3": "一般能力", "l4": "1.3节"}, {"id": "40764", "t": "1", "q": "黄色与红色一样，是中华民族偏爱的颜色。在与“五行说”相对应的“五色论”里，黄色代表土，居于四方的中央。东汉的儒家为了抬高君权，突出了“五行”和“五方”中“土居中央”的观点，把土说成是一切元素的根本，因此中央是至高无上的，这也极大地提高了黄色的地位。三国时期的魏文帝曹丕也接受了这一说法，把黄色定为正色之首，随后的隋、唐王朝都加以效仿。从唐代起，正黄色成为皇室的专用色，滥用即会获罪。时隔千年，虽然黄色早已进入寻常百姓家，但金黄色那高贵庄严的气质依然存在。\n对这段文字概括最恰当的一项是（ ）。", "a": ["分析中华民族偏爱黄色的原因", "追溯土居中央观念的形成历史", "探讨颜色与五行观念的内在渊源", "强调皇权观念对色彩文化的影响", "", ""], "r": "A", "e": "【解析】文段开篇指出黄色是中华民族偏爱的颜色，随后通过“东汉”“三国时期”“唐代”等多个时间维度展开论述，具体解释了中华民族历来偏爱黄色的原因，故整个文段为总—分结构，重点强调中华民族历来偏爱黄色的原因，对应A项。\nB项，“土居中央”对应文段“东汉”“三国”等时期，非重点，且表述片面，排除;\nC项“颜色”、D项“色彩”主题词范围扩大，文段重点论述“黄色”，均排除。\n故正确答案为A。", "l3": "一般能力", "l4": "1.1节"}, {"id": "46291", "t": "1", "q": "用来检验纸币真假的不可见光是（ ）。", "a": ["无线电波", "X射线", "红外线", "紫外线", "", ""], "r": "D", "e": "【解析】A项错误，无线电波，是一种电磁波，其波长在电磁波谱中比红外线长。和其他电磁波一样，无线电波也以光速传播。在现代科技中，无线电波常用于通信。\nB项错误，X射线是一种波长极短、能量很大的电磁波，X射线的波长比可见光的波长短，它的光子能量比可见光的光子能量大几万至几十万倍。X射线常应用于医学诊断、医学治疗等。\nC项错误，红外线是波长介于微波与可见光之间的电磁波，具有热效应、穿透能力强的性质。主要应用于夜视仪、透视望远镜、热成像仪。\nD项正确，紫外线是介于可见光和X射线之间波长长度的非可见光。紫外线主要应用有医用消毒杀菌、防伪标签、日光灯、验钞机等。", "l3": "一般能力", "l4": "1.11节"}]}, {"k": "公共与行业知识", "n": "公共与行业知识（6 题）", "qs": [{"id": "61976", "t": "1", "q": "习近平总书记在庆祝中国共产党成立105周年大会上强调，全党必须强化忧患意识、坚持（ ），发扬（ ）、增强斗争本领，更好统筹国内国际两个大局，统筹发展和安全，提高科学预见变化、 及时洞察风险、有效应对挑战的能力，确保中华复兴号巨轮劈波斩浪、行稳致远。", "a": ["系统思维；斗争精神", "底线思维；斗争精神", "系统思维；拼搏精神", "底线思维；拼搏精神", "", ""], "r": "B", "e": "", "l3": "公共与行业知识", "l4": "第1部分 形势政策"}, {"id": "62074", "t": "1", "q": "国家电网有限公司的治企理念是（ ）。", "a": ["以人民为中心", "以人为本、守正创新", "以奋斗者为本", "解放思想、实事求是", "", ""], "r": "B", "e": "", "l3": "公共与行业知识", "l4": "第2部分 企业文化"}, {"id": "62567", "t": "2", "q": "物联网一般分为三个层次，分别为( )", "a": ["感知层", "网络层", "应用层", "服务层", "", ""], "r": "ABC", "e": "", "l3": "公共与行业知识", "l4": "第4部分 新型电力系统"}, {"id": "62379", "t": "1", "q": "《国家发展改革委国家能源局关于促进电网高质量发展的指导意见》提出，加强电力调度顶 层设计，坚持（ ），遵循电力系统高比例新能源和电力电子化发展规律，加快构建网源运行协 调、安全主动防御、资源市场配置、数智技术赋能的新型电力调度体系，增强电力调度灵活性和适 应性，与电力市场运行高效衔接。", "a": ["分级调度、分级管理", "统一调度、统一管理", "分散调度、统一管理", "统一调度、分级管理", "", ""], "r": "D", "e": "", "l3": "公共与行业知识", "l4": "第4部分 新型电力系统"}, {"id": "62472", "t": "1", "q": "电网输电损耗与线路（ ）成（ ）比。", "a": ["电流；正", "电流平方；正", "电流；反", "电流平方；反", "", ""], "r": "B", "e": "", "l3": "公共与行业知识", "l4": "第4部分 新型电力系统"}, {"id": "62184", "t": "1", "q": "国家电网有限公司深入贯彻新时代党的建设总要求和新时代党的组织路线，坚持目标导向、问题导向，以党的政治建设为统领，以提高领导班子思想政治素质为根本，努力锻造（ ）的坚强领导班子。", "a": ["责任意识优、功能结构优、工作业绩优、作风形象优", "政治素质好、发展业绩好、创新效能好、党建作用好、作风形象好", "责任意识优、年龄结构优、工作业绩优、作风形象优", "政治素质好、功能结构好、党建作用好、作风形象好、道德品质好", "", ""], "r": "B", "e": "", "l3": "公共与行业知识", "l4": "第3部分 公司战略"}]}]};
+
+const KEY = 'ly:' + DATA.id;
+const store = {
+  load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {} } catch(e){ return {} } },
+  save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)) } catch(e){} }
+};
+let S = store.load();
+S.wrong = S.wrong || {}; S.collect = S.collect || {}; S.pos = S.pos || {};
+S.ans = S.ans || {}; S.stats = S.stats || {r:0,w:0};
+store.save(S);
+
+const $ = id => document.getElementById(id);
+const app = $('app'), hTitle = $('hTitle'), backBtn = $('back'), starBtn = $('star');
+let sess = null;   // {list, idx, mode, key}
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1400); }
+function allQ(){ return DATA.chapters.flatMap(c=>c.qs); }
+function chapterWrongCount(c){ return c.qs.filter(q=>S.wrong[q.id]).length; }
+function chapterDone(c){ const p=S.pos[c.k]; return p==null?0:Math.min(p,c.qs.length); }
+function esc(s){ return (s||'').replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+function renderHome(){
+  sess = null; backBtn.style.display='none'; starBtn.style.display='none';
+  hTitle.textContent = DATA.name;
+  const total = allQ().length, wrongN = Object.keys(S.wrong).length, colN = Object.keys(S.collect).length;
+  app.innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${total}</b><span>总题量</span></div>
+      <div class="stat"><b style="color:var(--ok)">${S.stats.r}</b><span>答对</span></div>
+      <div class="stat"><b style="color:var(--bad)">${S.stats.w}</b><span>答错</span></div>
+      <div class="stat"><b style="color:#ffb020">${wrongN}</b><span>错题</span></div>
+    </div>
+    <div class="modes">
+      <button onclick="startAll()">顺序练习</button>
+      <button onclick="startRandom()">随机练习</button>
+      <button class="warn" onclick="startWrong()">错题本<em class="pill">${wrongN}</em></button>
+      <button onclick="startCollect()">收藏<em class="pill">${colN}</em></button>
+    </div>
+    <div class="card">
+      ${DATA.chapters.map((c,i)=>{
+        const done = chapterDone(c), pct = c.qs.length? Math.round(done/c.qs.length*100):0;
+        return `<div class="ch" onclick="startChapter(${i})">
+          <div class="t"><b>${esc(c.n)}</b><span>${c.qs.length} 题 · 错题 ${chapterWrongCount(c)} · 已做 ${done}</span>
+          <div class="bar"><i style="width:${pct}%"></i></div></div>
+          <div style="color:var(--sub)">›</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function begin(list, mode, key){
+  if(!list.length){ toast('这里还没有题目'); return; }
+  sess = {list, idx:0, mode, key, done:{}};
+  backBtn.style.display=''; starBtn.style.display='';
+  showQ();
+}
+
+/* 错题本/收藏：允许重新作答（不受历史作答记录限制） */
+function redoMode(){ return sess && (sess.mode==='wrong' || sess.mode==='collect'); }
+function isAnswered(){
+  const q = sess.list[sess.idx];
+  if(!q) return true;
+  if(sess.done && sess.done[q.id]) return true;
+  return !!S.ans[q.id] && !redoMode();
+}
+function redoQ(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  delete S.ans[q.id];
+  if(sess.done) delete sess.done[q.id];
+  delete draft[q.id];
+  store.save(S); showQ();
+}
+
+function startChapter(i){
+  const c = DATA.chapters[i];
+  const pos = S.pos[c.k] || 0;
+  begin(c.qs.slice(), 'chapter', c.k);
+  sess.idx = Math.min(pos, c.qs.length-1);
+  showQ();
+}
+function startAll(){ begin(allQ(), 'all', 'ALL'); }
+function startRandom(){ begin(allQ().sort(()=>Math.random()-0.5), 'random', 'RND'); }
+function startWrong(){
+  const list = allQ().filter(q=>S.wrong[q.id]);
+  list.sort((a,b)=>(S.wrong[b.id].n||0)-(S.wrong[a.id].n||0));
+  begin(list, 'wrong', 'WRONG');
+}
+function startCollect(){ begin(allQ().filter(q=>S.collect[q.id]), 'collect', 'COL'); }
+
+const TYPE_NAME = {1:'单选', 2:'多选', 3:'判断'};
+function typeOf(q){ return TYPE_NAME[q.t] || '单选'; }
+function isMulti(q){ return q.t === 2; }
+let draft = {};          // 多选题暂存：qid -> [选项字母]
+
+function sameSet(a, b){
+  const x = (a||'').split('').filter(Boolean).sort().join('');
+  const y = (b||'').split('').filter(Boolean).sort().join('');
+  return !!x && x === y;
+}
+
+function grade(q, answer){
+  const ok = sameSet(answer, q.r);
+  S.ans[q.id] = {a: answer, ok};
+  let rec = S.wrong[q.id];
+  if(ok){
+    S.stats.r++;
+    if(rec){ rec.s = (rec.s||0)+1; if(rec.s >= 2){ delete S.wrong[q.id]; toast('已掌握，移出错题本'); } }
+  } else {
+    S.stats.w++;
+    if(!rec) rec = S.wrong[q.id] = {n:0,s:0};
+    rec.n = (rec.n||0)+1; rec.s = 0; rec.ts = Date.now();
+  }
+  delete draft[q.id];
+  if(sess && sess.done) sess.done[q.id] = true;
+  store.save(S);
+  showQ();
+}
+
+function showQ(){
+  const q = sess.list[sess.idx];
+  if(!q){ renderHome(); return; }
+  if(sess.mode==='chapter' || sess.mode==='all') S.pos[sess.key] = sess.idx;
+  const ans = S.ans[q.id];
+  const answered = isAnswered();
+  const multi = isMulti(q);
+  const sel = draft[q.id] || [];
+  const star = !!S.collect[q.id];
+  starBtn.classList.toggle('on', star);
+  hTitle.textContent = `${DATA.name} · ${sess.idx+1}/${sess.list.length}`;
+
+  const opts = q.a.map((a, i)=>{
+    const L = 'ABCDEF'[i];
+    if(!a || !a.replace(/<[^>]+>/g,'').trim() && !/img/i.test(a)) return '';
+    let cls = 'opt';
+    if(answered){
+      if((q.r||'').includes(L)) cls += ' right';
+      else if((ans.a||'').includes(L)) cls += ' wrong';
+    } else if(multi && sel.includes(L)) cls += ' sel';
+    return `<button class="${cls}" onclick="pick('${L}')">
+      <span class="lab">${q.ap[i] ? '' : L}</span>
+      <span class="cnt">${a}</span>
+    </button>`;
+  }).join('');
+
+  const hint = multi && !answered
+    ? `<div class="hint">多选题：可选多个，选好后点「提交答案」（当前已选 ${sel.length} 项）</div>`
+    : (redoMode() && ans && !answered ? `<div class="hint">重做模式：答错留在本里，连续答对 2 次自动移出</div>` : '');
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead"><span><em class="tag t${q.t}">${typeOf(q)}</em>${esc(q.l4 || q.l3)}</span></div>
+      <div class="title">${q.q}</div>
+      ${opts}
+      ${hint}
+      <div class="ana" id="ana" style="${answered?'display:block':''}">
+        <div><b>正确答案：${q.r || '—'}</b>${answered?`　<span style="color:${ans.ok?'var(--ok)':'var(--bad)'}">我的答案：${ans.a || '—'}</span>`:''}</div>
+        ${q.e?`<div style="margin-top:8px">解析：${q.e}</div>`:''}
+      </div>
+      ${multi && !answered ? `<button class="btn primary wide" onclick="submitMulti()" ${sel.length?'':'disabled style="opacity:.45"'} >提交答案</button>` : ''}
+      ${answered ? `<button class="btn wide" onclick="redoQ()">重做本题</button>` : ''}
+      <div class="nav">
+        <button class="btn" onclick="prevQ()" ${sess.idx===0?'disabled style="opacity:.5"':''}>上一题</button>
+        <button class="btn primary" onclick="nextQ()">${sess.idx===sess.list.length-1?'完成':'下一题'}</button>
+      </div>
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+function pick(L){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  if(isMulti(q)){
+    const cur = (draft[q.id] || []).slice();
+    const i = cur.indexOf(L);
+    if(i >= 0) cur.splice(i,1); else cur.push(L);
+    draft[q.id] = cur.sort();
+    showQ();
+    return;
+  }
+  grade(q, L);
+}
+
+function submitMulti(){
+  const q = sess.list[sess.idx];
+  if(!q || isAnswered()) return;
+  const sel = (draft[q.id] || []).slice().sort().join('');
+  if(!sel){ toast('先选至少一个选项'); return; }
+  grade(q, sel);
+}
+function prevQ(){ if(sess.idx>0){ sess.idx--; showQ(); } }
+function nextQ(){
+  if(sess.idx < sess.list.length-1){ sess.idx++; showQ(); }
+  else { toast('这一组做完了'); renderHome(); }
+}
+function toggleStar(){
+  const q = sess.list[sess.idx]; if(!q) return;
+  if(S.collect[q.id]) delete S.collect[q.id]; else S.collect[q.id] = true;
+  store.save(S); showQ();
+}
+
+backBtn.onclick = renderHome;
+starBtn.onclick = toggleStar;
+
+/* 支持 ?chapter=0 直接进章节 */
+const m = location.search.match(/chapter=(\d+)/);
+if(m) startChapter(+m[1]); else renderHome();
+</script>
+</body>
+</html>
